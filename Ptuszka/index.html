@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ptuška</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/favicon.png">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        
+        #gameContainer {
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        canvas {
+            display: block;
+            background-color: white;
+            border: 2px solid black;
+        }
+        
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        <div id="gameOver">
+            <div>ИГРА ОКОНЧЕНА</div>
+            <div style="font-size: 16px; margin-top: 10px;">Нажмите для перезапуска</div>
+        </div>
+    </div>
+
+    <script>
+        // Получаем canvas и контекст для рисования
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameOverDiv = document.getElementById('gameOver');
+        
+        // Основные параметры игры
+        const GRAVITY = 0.5;  // Сила гравитации, которая тянет птичку вниз
+        const JUMP_STRENGTH = -8;  // Сила прыжка вверх (отрицательная, так как Y растёт вниз)
+        const PIPE_SPEED = 3;  // Постоянная скорость движения труб
+        const PIPE_WIDTH = 60;  // Ширина трубы
+        const PIPE_GAP = 180;  // Расстояние между верхней и нижней трубой
+        const PIPE_SPAWN_INTERVAL = 90;  // Интервал появления новых труб (в кадрах)
+        
+        // Объект птички с её свойствами
+        let bird = {
+            x: 80,  // Позиция по горизонтали (фиксированная)
+            y: 250,  // Позиция по вертикали (меняется)
+            width: 30,  // Размер квадрата птички
+            height: 30,
+            velocity: 0  // Скорость падения/подъёма
+        };
+        
+        // Массив для хранения всех труб на экране
+        let pipes = [];
+        
+        // Счётчик кадров для определения момента создания новой трубы
+        let frameCount = 0;
+        
+        // Флаг состояния игры
+        let gameActive = true;
+        
+        // Функция для создания новой пары труб
+        function createPipe() {
+            // Случайная высота для промежутка между трубами
+            const minGapY = 50;
+            const maxGapY = canvas.height - PIPE_GAP - 50;
+            const gapY = Math.random() * (maxGapY - minGapY) + minGapY;
+            
+            pipes.push({
+                x: canvas.width,  // Появляется справа
+                gapY: gapY  // Позиция промежутка
+            });
+        }
+        
+        // Функция прыжка птички
+        function jump() {
+            if (gameActive) {
+                bird.velocity = JUMP_STRENGTH;
+            }
+        }
+        
+        // Функция проверки столкновений
+        function checkCollision() {
+            // Проверка на выход за границы экрана
+            if (bird.y + bird.height > canvas.height || bird.y < 0) {
+                return true;
+            }
+            
+            // Проверка столкновения с трубами
+            for (let pipe of pipes) {
+                // Проверяем, находится ли птичка в зоне трубы по горизонтали
+                if (bird.x + bird.width > pipe.x && bird.x < pipe.x + PIPE_WIDTH) {
+                    // Проверяем, находится ли птичка вне промежутка между трубами
+                    if (bird.y < pipe.gapY || bird.y + bird.height > pipe.gapY + PIPE_GAP) {
+                        return true;
+                    }
+                }
+            }
+            
+            return false;
+        }
+        
+        // Функция перезапуска игры
+        function restart() {
+            bird.y = 250;
+            bird.velocity = 0;
+            pipes = [];
+            frameCount = 0;
+            gameActive = true;
+            gameOverDiv.style.display = 'none';
+            gameLoop();
+        }
+        
+        // Основной игровой цикл
+        function gameLoop() {
+            if (!gameActive) return;
+            
+            // Очищаем canvas для нового кадра
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Обновляем физику птички
+            bird.velocity += GRAVITY;  // Применяем гравитацию
+            bird.y += bird.velocity;  // Обновляем позицию
+            
+            // Рисуем птичку (чёрный квадрат)
+            ctx.fillStyle = 'black';
+            ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
+            
+            // Увеличиваем счётчик кадров
+            frameCount++;
+            
+            // Создаём новую трубу через определённый интервал
+            if (frameCount % PIPE_SPAWN_INTERVAL === 0) {
+                createPipe();
+            }
+            
+            // Обновляем и рисуем все трубы
+            for (let i = pipes.length - 1; i >= 0; i--) {
+                let pipe = pipes[i];
+                
+                // Двигаем трубу влево
+                pipe.x -= PIPE_SPEED;
+                
+                // Удаляем трубу, если она вышла за левую границу экрана
+                if (pipe.x + PIPE_WIDTH < 0) {
+                    pipes.splice(i, 1);
+                    continue;
+                }
+                
+                // Рисуем верхнюю трубу (белый прямоугольник с чёрной границей)
+                ctx.fillStyle = 'white';
+                ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.gapY);
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(pipe.x, 0, PIPE_WIDTH, pipe.gapY);
+                
+                // Рисуем нижнюю трубу
+                ctx.fillStyle = 'white';
+                ctx.fillRect(pipe.x, pipe.gapY + PIPE_GAP, PIPE_WIDTH, canvas.height - pipe.gapY - PIPE_GAP);
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(pipe.x, pipe.gapY + PIPE_GAP, PIPE_WIDTH, canvas.height - pipe.gapY - PIPE_GAP);
+            }
+            
+            // Проверяем столкновения
+            if (checkCollision()) {
+                gameActive = false;
+                gameOverDiv.style.display = 'block';
+                return;
+            }
+            
+            // Запрашиваем следующий кадр анимации
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Обработка событий управления
+        // Нажатие клавиши пробел на клавиатуре
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();  // Предотвращаем прокрутку страницы
+                if (gameActive) {
+                    jump();
+                } else {
+                    restart();
+                }
+            }
+        });
+        
+        // Клик мышью по canvas
+        canvas.addEventListener('click', () => {
+            if (gameActive) {
+                jump();
+            } else {
+                restart();
+            }
+        });
+        
+        // Касание экрана на мобильных устройствах
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();  // Предотвращаем стандартное поведение
+            if (gameActive) {
+                jump();
+            } else {
+                restart();
+            }
+        });
+        
+        // Запускаем игру
+        gameLoop();
+    </script>
+</body>
+</html>
