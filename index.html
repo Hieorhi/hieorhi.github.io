@@ -85,19 +85,16 @@ main {
   color: inherit;
   background: #fff;
   transition: all 0.3s ease;
-  opacity: 0;
   animation: fadeIn 0.6s ease forwards;
 }
 
-/* Fade in animation */
+/* Fade in animation - ИСПРАВЛЕНО: убрал transform из animation */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -180,17 +177,30 @@ footer {
   }
 }
 
-/* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
+  /* Убираем анимацию появления */
   .project {
     animation: none;
-    opacity: 1;
   }
   
-  .project:hover {
-    transform: none; /* Вообще ничего не двигается */
-    transition: none;
-    box-shadow: 0 0 0 3px #000; /* Только обводка для фидбэка */
+  /* Убираем все движения при hover, но оставляем фидбек */
+  .project:hover,
+  .project:focus-visible {
+    transform: none; /* Никаких движений */
+    transition: none; /* Мгновенно */
+    background: #f0f0f0; /* Немного темнее фон */
+    box-shadow: none; /* Без тени */
+    outline: 3px solid #000; /* Чёткая обводка */
+    outline-offset: 2px; /* Отступ от рамки */
+  }
+  
+  /* Убираем transition у всех элементов */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
   
@@ -227,6 +237,3 @@ footer {
 
 </body>
 </html>
-
-
-
