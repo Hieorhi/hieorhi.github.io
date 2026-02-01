@@ -5,8 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hieorhi Skamarochaŭ</title>
 
+<!-- Favicon -->
+<link rel="icon" type="image/png" href="favicon.png">
+
 <!-- SEO -->
-<meta name="description" content="Personal projects by Hieorhi Skamarochaŭ">
+<meta name="description" content="Personal portfolio of Hieorhi Skamarochaŭ">
 
 <!-- Open Graph (Telegram / Discord) -->
 <meta property="og:title" content="Hieorhi Skamarochaŭ">
@@ -23,7 +26,7 @@
 }
 
 html, body {
-  height: 100%;
+  min-height: 100%;
   font-family: Helvetica Neue, Arial, sans-serif;
   background: #ffffff;
   color: #111;
@@ -41,11 +44,19 @@ header h1 {
   font-weight: 600;
 }
 
-/* Projects container */
+/* Projects container with grid */
 main {
   display: flex;
   justify-content: center;
   padding: 32px;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 260px));
+  gap: 32px;
+  justify-content: center;
+  max-width: 1200px;
 }
 
 /* Project square */
@@ -58,12 +69,14 @@ main {
   text-decoration: none;
   color: inherit;
   background: #fff;
+  transition: background 0.2s ease;
 }
 
 /* Hover / focus */
 .project:hover,
 .project:focus-visible {
   background: #fafafa;
+  outline: none;
 }
 
 /* Screenshot area */
@@ -89,12 +102,36 @@ main {
   font-size: 1.05rem;
 }
 
+/* Tablet */
+@media (max-width: 768px) {
+  .projects-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 240px));
+    gap: 24px;
+  }
+  
+  .project {
+    width: 240px;
+    height: 240px;
+  }
+}
+
 /* Mobile */
 @media (max-width: 480px) {
+  header h1 {
+    font-size: 2rem;
+  }
+  
+  .projects-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 0;
+  }
+  
   .project {
     width: 100%;
     max-width: 320px;
-    height: auto;
+    height: 280px;
+    justify-self: center;
   }
 }
 </style>
@@ -103,21 +140,38 @@ main {
 <body>
 
 <header>
-  <h1>Hieorhi Skamarochaŭ</h1>
+  <h1>Hieorhi Skamaročaŭ</h1>
 </header>
 
 <main>
-  <a class="project"
-     href="https://hieorhi.github.io/Ptuszka/"
-     target="_blank"
-     rel="noopener noreferrer">
-    <div class="project-image">
-      <img src="ptuszka.png" alt="Ptuška">
-    </div>
-    <div class="project-title">
-      Ptuška
-    </div>
-  </a>
+  <div class="projects-grid">
+    <a class="project"
+       href="https://hieorhi.github.io/Ptuszka/"
+       target="_blank"
+       rel="noopener noreferrer">
+      <div class="project-image">
+        <img src="ptuszka.png" alt="Ptuška">
+      </div>
+      <div class="project-title">
+        Ptuška
+      </div>
+    </a>
+    
+    <!-- Add more projects here as needed -->
+    <!-- Example:
+    <a class="project"
+       href="https://example.com"
+       target="_blank"
+       rel="noopener noreferrer">
+      <div class="project-image">
+        <img src="project2.png" alt="Project 2">
+      </div>
+      <div class="project-title">
+        Project Name
+      </div>
+    </a>
+    -->
+  </div>
 </main>
 
 </body>
