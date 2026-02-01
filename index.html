@@ -9,6 +9,7 @@
 <link rel="apple-touch-icon" href="/favicon.png">
 
 <meta name="description" content="Personal portfolio of Hieorhi Skamarochaŭ">
+<meta name="theme-color" content="#ffffff">
 
 <meta property="og:title" content="Hieorhi Skamarochaŭ">
 <meta property="og:description" content="Ja jo (tutejšy chuj)">
@@ -25,9 +26,25 @@
 
 html, body {
   min-height: 100%;
-  font-family: Helvetica Neue, Arial, sans-serif;
+  font-family: "Helvetica Neue", Arial, sans-serif;
   background: #ffffff;
   color: #111;
+}
+
+/* Skip to main content (accessibility) */
+.skip-to-main {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #000;
+  color: #fff;
+  padding: 8px 16px;
+  text-decoration: none;
+  z-index: 100;
+}
+
+.skip-to-main:focus {
+  top: 0;
 }
 
 /* Header */
@@ -67,14 +84,31 @@ main {
   text-decoration: none;
   color: inherit;
   background: #fff;
-  transition: background 0.2s ease;
+  transition: all 0.3s ease;
+  opacity: 0;
+  animation: fadeIn 0.6s ease forwards;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Hover / focus */
 .project:hover,
 .project:focus-visible {
   background: #fafafa;
-  outline: none;
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  outline: 2px solid #000;
+  outline-offset: 2px;
 }
 
 /* Screenshot area */
@@ -88,6 +122,11 @@ main {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.project:hover .project-image img {
+  transform: scale(1.05);
 }
 
 /* Title area */
@@ -98,6 +137,17 @@ main {
   justify-content: center;
   border-top: 2px solid #000;
   font-size: 1.05rem;
+  font-weight: 500;
+}
+
+/* Footer */
+footer {
+  padding: 32px 16px;
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  border-top: 1px solid #e0e0e0;
+  margin-top: 32px;
 }
 
 /* Tablet */
@@ -131,50 +181,54 @@ main {
     height: 280px;
     justify-self: center;
   }
+  
+  footer {
+    font-size: 0.85rem;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .project,
+  .project-image img {
+    animation: none;
+    transition: none;
+  }
+  
+  .project:hover {
+    transform: none;
+  }
 }
 </style>
 </head>
 
 <body>
 
+<!-- Skip to main content for screen readers -->
+<a href="#main-content" class="skip-to-main">Skip to main content</a>
+
 <header>
   <h1>Hieorhi Skamarochaŭ</h1>
 </header>
 
-<main>
+<main id="main-content">
   <div class="projects-grid">
-    <a class="project"
-       href="https://hieorhi.github.io/Ptuszka/"
-       target="_blank"
-       rel="noopener noreferrer">
+    
+    <a class="project" href="https://hieorhi.github.io/Ptuszka/">
       <div class="project-image">
-        <img src="ptuszka.png" alt="Ptuška">
+        <img src="ptuszka.png" alt="Ptuška" loading="lazy">
       </div>
       <div class="project-title">
         Ptuška
       </div>
     </a>
     
-    <!-- Add more projects here as needed -->
-    <!-- Example:
-    <a class="project"
-       href="https://example.com"
-       target="_blank"
-       rel="noopener noreferrer">
-      <div class="project-image">
-        <img src="project2.png" alt="Project 2">
-      </div>
-      <div class="project-title">
-        Project Name
-      </div>
-    </a>
-    -->
   </div>
 </main>
 
+<footer>
+  <p>© 2026 Hieorhi Skamarochaŭ</p>
+</footer>
+
 </body>
 </html>
-
-
-
-
