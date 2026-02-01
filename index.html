@@ -3,61 +3,93 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hieorhi</title>
+<title>Hieorhi Skamarochaŭ</title>
+
 <style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-  html, body {
-    height: 100%;
-    font-family: 'Helvetica Neue', Arial, sans-serif;
-    background-color: #ffffff;
-    color: #111111;
-  }
+html, body {
+  height: 100%;
+  font-family: Helvetica Neue, Arial, sans-serif;
+  background: #ffffff;
+  color: #111;
+}
 
-  body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    flex-direction: column;
-  }
+/* Header */
+header {
+  padding: 32px 16px;
+  text-align: center;
+  font-size: 3rem;
+  font-weight: 600;
+}
 
-  h1 {
-    font-size: 5rem;
-    margin-bottom: 1rem;
-  }
+/* Projects area */
+main {
+  display: flex;
+  justify-content: center;
+  padding: 32px;
+}
 
-  p {
-    font-size: 1.5rem;
-    color: #555555;
-  }
+/* Project card */
+.project {
+  width: 260px;
+  height: 260px;
+  border: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+}
 
-  h1, p {
-    opacity: 0;
-    animation: fadeIn 1s forwards;
-  }
+/* Screenshot area */
+.project-image {
+  flex: 1;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  font-size: 0.9rem;
+}
 
-  h1 {
-    animation-delay: 0.3s;
-  }
+.project-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
-  p {
-    animation-delay: 0.8s;
-  }
-
-  @keyframes fadeIn {
-    to {
-      opacity: 1;
-    }
-  }
+/* Title */
+.project-title {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: 1px solid #ddd;
+  font-size: 1.1rem;
+}
 </style>
 </head>
+
 <body>
-  <h1>Hieorhi</h1>
-  <p>In progress 🛠️</p>
+
+<header>
+  Hieorhi Skamarochaŭ
+</header>
+
+<main>
+  <a class="project" href="https://hieorhi.github.io/Ptuszka/" target="_blank">
+    <div class="project-image">
+      <img src="ptuszka.png" alt="Ptuška">
+    </div>
+    <div class="project-title">
+      Ptuška
+    </div>
+  </a>
+</main>
+
 </body>
 </html>
