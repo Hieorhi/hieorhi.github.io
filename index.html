@@ -31,7 +31,6 @@ html, body {
   color: #111;
 }
 
-/* Skip to main content (accessibility) */
 .skip-to-main {
   position: absolute;
   top: -40px;
@@ -47,37 +46,34 @@ html, body {
   top: 0;
 }
 
-/* Header */
 header {
-  padding: 32px 16px;
+  padding: clamp(24px, 5vw, 48px) 16px;
   text-align: center;
 }
 
 header h1 {
-  margin: 0;
-  font-size: 3rem;
+  font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 600;
 }
 
-/* Projects container with grid */
 main {
   display: flex;
   justify-content: center;
-  padding: 32px;
+  padding: clamp(16px, 4vw, 32px);
 }
 
 .projects-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 260px));
-  gap: 32px;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 300px));
+  gap: clamp(20px, 4vw, 32px);
   justify-content: center;
   max-width: 1200px;
+  width: 100%;
 }
 
-/* Project square */
 .project {
-  width: 260px;
-  height: 260px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
   border: 2px solid #000;
   display: flex;
   flex-direction: column;
@@ -88,17 +84,11 @@ main {
   animation: fadeIn 0.6s ease forwards;
 }
 
-/* Fade in animation - ИСПРАВЛЕНО: убрал transform из animation */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-/* Hover / focus */
 .project:hover,
 .project:focus-visible {
   background: #fafafa;
@@ -106,7 +96,6 @@ main {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
-/* Screenshot area */
 .project-image {
   flex: 1;
   overflow: hidden;
@@ -119,82 +108,41 @@ main {
   object-fit: cover;
 }
 
-/* Title area */
 .project-title {
   height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-top: 2px solid #000;
-  font-size: 1.05rem;
+  font-size: clamp(0.95rem, 2vw, 1.05rem);
   font-weight: 500;
+  padding: 0 8px;
 }
 
-/* Footer */
 footer {
   padding: 32px 16px;
   text-align: center;
   color: #666;
-  font-size: 0.9rem;
+  font-size: clamp(0.85rem, 2vw, 0.9rem);
   border-top: 1px solid #e0e0e0;
   margin-top: 32px;
 }
 
-/* Tablet */
-@media (max-width: 768px) {
-  .projects-grid {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 240px));
-    gap: 24px;
-  }
-  
-  .project {
-    width: 240px;
-    height: 240px;
-  }
-}
-
-/* Mobile */
-@media (max-width: 480px) {
-  header h1 {
-    font-size: 2rem;
-  }
-  
-  .projects-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-    padding: 0;
-  }
-  
-  .project {
-    width: 100%;
-    max-width: 320px;
-    height: 280px;
-    justify-self: center;
-  }
-  
-  footer {
-    font-size: 0.85rem;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  /* Убираем анимацию появления */
   .project {
     animation: none;
   }
   
-  /* Убираем все движения при hover, но оставляем фидбек */
   .project:hover,
   .project:focus-visible {
-    transform: none; /* Никаких движений */
-    transition: none; /* Мгновенно */
-    background: #f0f0f0; /* Немного темнее фон */
-    box-shadow: none; /* Без тени */
-    outline: 3px solid #000; /* Чёткая обводка */
-    outline-offset: 2px; /* Отступ от рамки */
+    transform: none;
+    transition: none;
+    background: #f0f0f0;
+    box-shadow: none;
+    outline: 3px solid #000;
+    outline-offset: 2px;
   }
   
-  /* Убираем transition у всех элементов */
   *,
   *::before,
   *::after {
@@ -203,13 +151,11 @@ footer {
     transition-duration: 0.01ms !important;
   }
 }
-  
 </style>
 </head>
 
 <body>
 
-<!-- Skip to main content for screen readers -->
 <a href="#main-content" class="skip-to-main">Skip to main content</a>
 
 <header>
