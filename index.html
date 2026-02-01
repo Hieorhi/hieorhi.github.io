@@ -182,16 +182,18 @@ footer {
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  .project,
-  .project-image img {
+  .project {
     animation: none;
-    transition: none;
+    opacity: 1;
   }
   
   .project:hover {
-    transform: none;
+    transform: none; /* Вообще ничего не двигается */
+    transition: none;
+    box-shadow: 0 0 0 3px #000; /* Только обводка для фидбэка */
   }
 }
+  
 </style>
 </head>
 
@@ -225,5 +227,6 @@ footer {
 
 </body>
 </html>
+
 
 
