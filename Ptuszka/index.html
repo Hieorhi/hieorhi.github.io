@@ -38,6 +38,18 @@
             border: 2px solid black;
         }
         
+        #score {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 48px;
+            font-weight: bold;
+            color: black;
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.8);
+            pointer-events: none;
+        }
+        
         #gameOver {
             position: absolute;
             top: 50%;
@@ -47,15 +59,34 @@
             font-size: 24px;
             font-weight: bold;
             display: none;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 10px;
+            border: 3px solid black;
+        }
+        
+        #finalScore {
+            font-size: 20px;
+            margin-top: 15px;
+            color: #333;
+        }
+        
+        #bestScore {
+            font-size: 18px;
+            margin-top: 10px;
+            color: #666;
         }
     </style>
 </head>
 <body>
     <div id="gameContainer">
         <canvas id="gameCanvas" width="400" height="600"></canvas>
+        <div id="score">0</div>
         <div id="gameOver">
             <div>ИГРА ОКОНЧЕНА</div>
-            <div style="font-size: 16px; margin-top: 10px;">Нажмите для перезапуска</div>
+            <div id="finalScore"></div>
+            <div id="bestScore"></div>
+            <div style="font-size: 16px; margin-top: 15px;">Нажмите для перезапуска</div>
         </div>
     </div>
 
@@ -64,22 +95,25 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const gameOverDiv = document.getElementById('gameOver');
+        const scoreDiv = document.getElementById('score');
+        const finalScoreDiv = document.getElementById('finalScore');
+        const bestScoreDiv = document.getElementById('bestScore');
         
         // Основные параметры игры
-        const GRAVITY = 0.5;  // Сила гравитации, которая тянет птичку вниз
-        const JUMP_STRENGTH = -8;  // Сила прыжка вверх (отрицательная, так как Y растёт вниз)
-        const PIPE_SPEED = 3;  // Постоянная скорость движения труб
-        const PIPE_WIDTH = 60;  // Ширина трубы
-        const PIPE_GAP = 180;  // Расстояние между верхней и нижней трубой
-        const PIPE_SPAWN_INTERVAL = 90;  // Интервал появления новых труб (в кадрах)
+        const GRAVITY = 0.5;
+        const JUMP_STRENGTH = -8;
+        const PIPE_SPEED = 3;
+        const PIPE_WIDTH = 60;
+        const PIPE_GAP = 180;
+        const PIPE_SPAWN_INTERVAL = 90;
         
         // Объект птички с её свойствами
         let bird = {
-            x: 80,  // Позиция по горизонтали (фиксированная)
-            y: 250,  // Позиция по вертикали (меняется)
-            width: 30,  // Размер квадрата птички
+            x: 80,
+            y: 250,
+            width: 30,
             height: 30,
-            velocity: 0  // Скорость падения/подъёма
+            velocity: 0
         };
         
         // Массив для хранения всех труб на экране
@@ -91,16 +125,20 @@
         // Флаг состояния игры
         let gameActive = true;
         
+        // Переменные для счёта
+        let score = 0;
+        let bestScore = localStorage.getItem('bestScore') || 0;
+        
         // Функция для создания новой пары труб
         function createPipe() {
-            // Случайная высота для промежутка между трубами
             const minGapY = 50;
             const maxGapY = canvas.height - PIPE_GAP - 50;
             const gapY = Math.random() * (maxGapY - minGapY) + minGapY;
             
             pipes.push({
-                x: canvas.width,  // Появляется справа
-                gapY: gapY  // Позиция промежутка
+                x: canvas.width,
+                gapY: gapY,
+                scored: false  // Флаг, чтобы начислить очки только один раз
             });
         }
         
@@ -132,14 +170,34 @@
             return false;
         }
         
+        // Функция обновления счёта
+        function updateScore() {
+            for (let pipe of pipes) {
+                // Проверяем, прошла ли птичка трубу и ещё не получила за неё очко
+                if (!pipe.scored && pipe.x + PIPE_WIDTH < bird.x) {
+                    pipe.scored = true;
+                    score++;
+                    scoreDiv.textContent = score;
+                    
+                    // Обновляем лучший результат
+                    if (score > bestScore) {
+                        bestScore = score;
+                        localStorage.setItem('bestScore', bestScore);
+                    }
+                }
+            }
+        }
+        
         // Функция перезапуска игры
         function restart() {
             bird.y = 250;
             bird.velocity = 0;
             pipes = [];
             frameCount = 0;
+            score = 0;
             gameActive = true;
             gameOverDiv.style.display = 'none';
+            scoreDiv.textContent = '0';
             gameLoop();
         }
         
@@ -151,8 +209,8 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             // Обновляем физику птички
-            bird.velocity += GRAVITY;  // Применяем гравитацию
-            bird.y += bird.velocity;  // Обновляем позицию
+            bird.velocity += GRAVITY;
+            bird.y += bird.velocity;
             
             // Рисуем птичку (чёрный квадрат)
             ctx.fillStyle = 'black';
@@ -179,7 +237,7 @@
                     continue;
                 }
                 
-                // Рисуем верхнюю трубу (белый прямоугольник с чёрной границей)
+                // Рисуем верхнюю трубу
                 ctx.fillStyle = 'white';
                 ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.gapY);
                 ctx.strokeStyle = 'black';
@@ -194,9 +252,14 @@
                 ctx.strokeRect(pipe.x, pipe.gapY + PIPE_GAP, PIPE_WIDTH, canvas.height - pipe.gapY - PIPE_GAP);
             }
             
+            // Обновляем счёт
+            updateScore();
+            
             // Проверяем столкновения
             if (checkCollision()) {
                 gameActive = false;
+                finalScoreDiv.textContent = `Ваш счёт: ${score}`;
+                bestScoreDiv.textContent = `Лучший результат: ${bestScore}`;
                 gameOverDiv.style.display = 'block';
                 return;
             }
@@ -206,10 +269,9 @@
         }
         
         // Обработка событий управления
-        // Нажатие клавиши пробел на клавиатуре
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space') {
-                e.preventDefault();  // Предотвращаем прокрутку страницы
+                e.preventDefault();
                 if (gameActive) {
                     jump();
                 } else {
@@ -218,7 +280,6 @@
             }
         });
         
-        // Клик мышью по canvas
         canvas.addEventListener('click', () => {
             if (gameActive) {
                 jump();
@@ -227,9 +288,8 @@
             }
         });
         
-        // Касание экрана на мобильных устройствах
         canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();  // Предотвращаем стандартное поведение
+            e.preventDefault();
             if (gameActive) {
                 jump();
             } else {
