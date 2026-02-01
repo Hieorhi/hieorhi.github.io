@@ -1,9 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="be">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hieorhi Skamarochaŭ</title>
+
+<!-- SEO -->
+<meta name="description" content="Personal projects by Hieorhi Skamarochaŭ">
+
+<!-- Open Graph (Telegram / Discord) -->
+<meta property="og:title" content="Hieorhi Skamarochaŭ">
+<meta property="og:description" content="Ja jo (tutejšy chuj)">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hieorhi.github.io/">
+<meta property="og:image" content="https://hieorhi.github.io/og.png">
 
 <style>
 * {
@@ -23,6 +33,10 @@ html, body {
 header {
   padding: 32px 16px;
   text-align: center;
+}
+
+header h1 {
+  margin: 0;
   font-size: 3rem;
   font-weight: 600;
 }
@@ -44,6 +58,12 @@ main {
   text-decoration: none;
   color: inherit;
   background: #fff;
+}
+
+/* Hover / focus */
+.project:hover,
+.project:focus-visible {
+  background: #fafafa;
 }
 
 /* Screenshot area */
@@ -68,17 +88,29 @@ main {
   border-top: 2px solid #000;
   font-size: 1.05rem;
 }
+
+/* Mobile */
+@media (max-width: 480px) {
+  .project {
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+  }
+}
 </style>
 </head>
 
 <body>
 
 <header>
-  Hieorhi Skamarochaŭ
+  <h1>Hieorhi Skamarochaŭ</h1>
 </header>
 
 <main>
-  <a class="project" href="https://hieorhi.github.io/Ptuszka/" target="_blank">
+  <a class="project"
+     href="https://hieorhi.github.io/Ptuszka/"
+     target="_blank"
+     rel="noopener noreferrer">
     <div class="project-image">
       <img src="ptuszka.png" alt="Ptuška">
     </div>
