@@ -152,7 +152,7 @@
         // Функция проверки столкновений
         function checkCollision() {
             // Проверка на выход за границы экрана
-            if (bird.y + bird.height >= canvas.height || bird.y < 0) {
+            if (bird.y + bird.height >= canvas.height || bird.y <= 0) {
                 return true;
             }
             
