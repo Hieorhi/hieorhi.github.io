@@ -82,6 +82,7 @@
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.5s;
+            mix-blend-mode: difference;
         }
         
         #score.visible {
@@ -127,6 +128,7 @@
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.5s;
+            mix-blend-mode: difference;
         }
         
         #totalCoinsDisplay.visible {
@@ -183,7 +185,8 @@
             hasActivatedGravity: false,
             hasPipesEnabled: false,
             hasCoinsEnabled: false,
-            hasSeenScore: false
+            hasSeenScore: false,
+            hasSeenCoins: false
         };
         
         // Счётчик прыжков - НЕ сохраняется, сбрасывается при каждом рестарте
@@ -211,7 +214,8 @@
                 hasActivatedGravity: false,
                 hasPipesEnabled: false,
                 hasCoinsEnabled: false,
-                hasSeenScore: false
+                hasSeenScore: false,
+                hasSeenCoins: false
             };
             jumpCount = 0;
             bestScore = 0;
@@ -242,7 +246,7 @@
         let totalCoins = parseInt(localStorage.getItem('totalCoins')) || 0;  // Общее за все катки
         let coinsThisRun = 0;  // Собрано в этой катке
         let scoreVisible = false;
-        let gameLoopInterval = null;
+        let animationFrameId = null;  // Для requestAnimationFrame
         
         // Анимация появления птички
         let birdOpacity = 0;
@@ -277,8 +281,8 @@
                 scoreVisible = true;
             }
             
-            // Показываем счётчик монет если фича открыта
-            if (progressFlags.hasCoinsEnabled) {
+            // Показываем счётчик монет если уже собирали
+            if (progressFlags.hasSeenCoins) {
                 totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
                 totalCoinsDisplay.classList.add('visible');
             }
@@ -297,15 +301,36 @@
                 gapY: gapY,
                 scored: false
             });
+        }
+        
+        // Функция создания монет (с вероятностью)
+        function createCoin() {
+            if (!progressFlags.hasCoinsEnabled) return;
             
-            // Создаём монету в gap'е трубы (если фича открыта)
-            if (progressFlags.hasCoinsEnabled) {
-                // Монета в центре gap'а с небольшим случайным смещением
-                const coinYOffset = (Math.random() - 0.5) * (PIPE_GAP - 60); // Отступ 30px от краёв gap'а
-                const coinY = gapY + PIPE_GAP / 2 + coinYOffset;
+            // 40% шанс создать монету
+            if (Math.random() > 0.4) return;
+            
+            // Два типа позиций монет
+            if (pipes.length > 0 && Math.random() > 0.5) {
+                // Тип 1: В gap'е последней трубы (50% если есть трубы)
+                const lastPipe = pipes[pipes.length - 1];
+                const coinYOffset = (Math.random() - 0.5) * (PIPE_GAP - 60);
+                const coinY = lastPipe.gapY + PIPE_GAP / 2 + coinYOffset;
                 
                 coins.push({
-                    x: canvas.width + 100, // Чуть впереди трубы
+                    x: canvas.width + 50,
+                    y: coinY,
+                    radius: 15,
+                    collected: false
+                });
+            } else {
+                // Тип 2: В воздухе между парами труб (случайная высота, безопасная)
+                const safeMinY = 80;
+                const safeMaxY = canvas.height - 80;
+                const coinY = Math.random() * (safeMaxY - safeMinY) + safeMinY;
+                
+                coins.push({
+                    x: canvas.width + Math.random() * 100, // Случайный offset для разнообразия
                     y: coinY,
                     radius: 15,
                     collected: false
@@ -433,6 +458,13 @@
                     totalCoins++;
                     localStorage.setItem('totalCoins', totalCoins);
                     totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
+                    
+                    // Показываем счётчик монет при первом сборе
+                    if (!progressFlags.hasSeenCoins) {
+                        progressFlags.hasSeenCoins = true;
+                        saveProgress();
+                        totalCoinsDisplay.classList.add('visible');
+                    }
                 }
             }
         }
@@ -440,9 +472,9 @@
         // Перезапуск игры
         function restart() {
             // Останавливаем старый цикл если есть
-            if (gameLoopInterval) {
-                clearInterval(gameLoopInterval);
-                gameLoopInterval = null;
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
             }
             
             // Сбрасываем счётчик прыжков
@@ -487,8 +519,8 @@
                 scoreVisible = false;
             }
             
-            // Счётчик монет видим если фича открыта
-            if (progressFlags.hasCoinsEnabled) {
+            // Счётчик монет видим только если уже собирали монеты
+            if (progressFlags.hasSeenCoins) {
                 totalCoinsDisplay.classList.add('visible');
             } else {
                 totalCoinsDisplay.classList.remove('visible');
@@ -500,9 +532,9 @@
         // Основной игровой цикл
         function gameLoop() {
             if (!gameActive) {
-                if (gameLoopInterval) {
-                    clearInterval(gameLoopInterval);
-                    gameLoopInterval = null;
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
                 }
                 return;
             }
@@ -564,9 +596,14 @@
             
             frameCount++;
             
-            // Создание труб (и монет вместе с ними)
+            // Создание труб
             if (progressFlags.hasPipesEnabled && frameCount % PIPE_SPAWN_INTERVAL === 0) {
                 createPipe();
+            }
+            
+            // Создание монет (чаще проверяем, но с вероятностью внутри функции)
+            if (progressFlags.hasCoinsEnabled && frameCount % 60 === 0) {
+                createCoin();
             }
             
             // Обновление и отрисовка труб
@@ -624,9 +661,9 @@
             // Проверка столкновений
             if (checkCollision()) {
                 gameActive = false;
-                if (gameLoopInterval) {
-                    clearInterval(gameLoopInterval);
-                    gameLoopInterval = null;
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
                 }
                 finalScoreDiv.textContent = `Ваш счёт: ${score}`;
                 bestScoreDiv.textContent = `Лучший результат: ${bestScore}`;
@@ -642,14 +679,17 @@
                 gameOverDiv.style.display = 'block';
                 return;
             }
+            
+            // Запрашиваем следующий кадр
+            animationFrameId = requestAnimationFrame(gameLoop);
         }
         
         // Функция запуска игрового цикла
         function startGameLoop() {
-            if (gameLoopInterval) {
-                clearInterval(gameLoopInterval);
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
             }
-            gameLoopInterval = setInterval(gameLoop, 1000 / 60); // 60 FPS
+            animationFrameId = requestAnimationFrame(gameLoop);
         }
         
         // Обработчики событий
