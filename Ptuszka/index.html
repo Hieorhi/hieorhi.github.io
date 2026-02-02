@@ -100,6 +100,29 @@
             margin-top: 10px;
             color: #aaa;
         }
+        
+        #totalCoinsDisplay {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        
+        #totalCoinsDisplay.visible {
+            opacity: 1;
+        }
+        
+        #coinsThisRun {
+            font-size: 18px;
+            margin-top: 10px;
+            color: #aaa;
+        }
     </style>
 </head>
 <body>
@@ -107,10 +130,12 @@
         <button id="resetButton">Сброс</button>
         <canvas id="gameCanvas" width="400" height="600"></canvas>
         <div id="score">0</div>
+        <div id="totalCoinsDisplay">🪙 0</div>
         <div id="gameOver">
             <div>ИГРА ОКОНЧЕНА</div>
             <div id="finalScore"></div>
             <div id="bestScore"></div>
+            <div id="coinsThisRun"></div>
             <div style="font-size: 16px; margin-top: 15px;">Нажмите для перезапуска</div>
         </div>
     </div>
@@ -122,6 +147,8 @@
         const scoreDiv = document.getElementById('score');
         const finalScoreDiv = document.getElementById('finalScore');
         const bestScoreDiv = document.getElementById('bestScore');
+        const coinsThisRunDiv = document.getElementById('coinsThisRun');
+        const totalCoinsDisplay = document.getElementById('totalCoinsDisplay');
         const resetButton = document.getElementById('resetButton');
         
         // Основные параметры игры
@@ -135,11 +162,17 @@
         
         // Флаги прогрессии (сохраняются в localStorage)
         let progressFlags = {
+            hasBirdCreated: false,
             hasMovedLeft: false,
             hasActivatedJumps: false,
+            hasActivatedGravity: false,
             hasPipesEnabled: false,
+            hasCoinsEnabled: false,
             hasSeenScore: false
         };
+        
+        // Счётчик прыжков - НЕ сохраняется, сбрасывается при каждом рестарте
+        let jumpCount = 0;
         
         // Загружаем флаги из localStorage
         function loadProgress() {
@@ -157,12 +190,20 @@
         // Полный сброс прогресса
         function resetProgress() {
             progressFlags = {
+                hasBirdCreated: false,
                 hasMovedLeft: false,
                 hasActivatedJumps: false,
+                hasActivatedGravity: false,
                 hasPipesEnabled: false,
+                hasCoinsEnabled: false,
                 hasSeenScore: false
             };
-            saveProgress();
+            jumpCount = 0;
+            bestScore = 0;
+            totalCoins = 0;
+            coinsThisRun = 0;
+            localStorage.clear();  // Полная очистка всех сохраненных данных
+            saveProgress();  // Сохраняем пустые флаги
             restart();
         }
         
@@ -178,19 +219,38 @@
         };
         
         let pipes = [];
+        let coins = [];  // Массив монет на экране
         let frameCount = 0;
         let gameActive = true;
         let score = 0;
         let bestScore = localStorage.getItem('bestScore') || 0;
+        let totalCoins = parseInt(localStorage.getItem('totalCoins')) || 0;  // Общее за все катки
+        let coinsThisRun = 0;  // Собрано в этой катке
         let scoreVisible = false;
         let gameLoopInterval = null;
+        
+        // Анимация появления птички
+        let birdOpacity = 0;
+        let birdAppearing = false;
         
         // Инициализация при загрузке
         function init() {
             loadProgress();
             
-            // Если все флаги true, стартуем в обычном режиме слева
-            if (progressFlags.hasMovedLeft) {
+            // Инициализируем счётчик прыжков
+            jumpCount = 0;
+            
+            // Если птичка уже создана, показываем её сразу
+            if (progressFlags.hasBirdCreated) {
+                birdOpacity = 1;
+                birdAppearing = false;
+            } else {
+                birdOpacity = 0;
+                birdAppearing = false;
+            }
+            
+            // Если птичка уже создана и переместилась влево, стартуем слева
+            if (progressFlags.hasBirdCreated && progressFlags.hasMovedLeft) {
                 bird.x = 80;
             } else {
                 bird.x = 200 - 15;  // Центр
@@ -200,6 +260,12 @@
             if (progressFlags.hasSeenScore) {
                 scoreDiv.classList.add('visible');
                 scoreVisible = true;
+            }
+            
+            // Показываем счётчик монет если фича открыта
+            if (progressFlags.hasCoinsEnabled) {
+                totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
+                totalCoinsDisplay.classList.add('visible');
             }
         }
         
@@ -216,39 +282,93 @@
                 gapY: gapY,
                 scored: false
             });
+            
+            // Создаём монету в gap'е трубы (если фича открыта)
+            if (progressFlags.hasCoinsEnabled) {
+                // Монета в центре gap'а с небольшим случайным смещением
+                const coinYOffset = (Math.random() - 0.5) * (PIPE_GAP - 60); // Отступ 30px от краёв gap'а
+                const coinY = gapY + PIPE_GAP / 2 + coinYOffset;
+                
+                coins.push({
+                    x: canvas.width + 100, // Чуть впереди трубы
+                    y: coinY,
+                    radius: 15,
+                    collected: false
+                });
+            }
         }
         
         // Функция прыжка
         function jump() {
             if (!gameActive) return;
             
-            if (!progressFlags.hasMovedLeft) {
-                // Первый клик - начать движение влево
+            if (!progressFlags.hasBirdCreated) {
+                // Самый первый клик - появление птички с анимацией
+                progressFlags.hasBirdCreated = true;
+                birdAppearing = true;
+                saveProgress();
+            } else if (!progressFlags.hasMovedLeft) {
+                // Второй клик - начать движение влево
                 bird.isMovingLeft = true;
+            } else if (progressFlags.hasPipesEnabled && progressFlags.hasCoinsEnabled) {
+                // Все этапы пройдены - обычный прыжок
+                bird.velocity = JUMP_STRENGTH;
             } else if (!progressFlags.hasActivatedJumps) {
-                // Второй клик - активировать прыжки, гравитацию и трубы
+                // Третий клик - активировать прыжки (первый прыжок, БЕЗ гравитации)
                 progressFlags.hasActivatedJumps = true;
-                progressFlags.hasPipesEnabled = true;
+                jumpCount = 1;
                 saveProgress();
                 bird.velocity = JUMP_STRENGTH;
+            } else if (jumpCount < 3) {
+                // Прыжки 2-3 (всё ещё без гравитации)
+                jumpCount++;
+                bird.velocity = JUMP_STRENGTH;
+                
+                // На 3-м прыжке активируем гравитацию
+                if (jumpCount === 3) {
+                    progressFlags.hasActivatedGravity = true;
+                    saveProgress();
+                }
+            } else if (jumpCount < 13) {
+                // Прыжки 4-13 (с гравитацией)
+                jumpCount++;
+                bird.velocity = JUMP_STRENGTH;
+                
+                // На 13-м прыжке активируем трубы
+                if (jumpCount === 13) {
+                    progressFlags.hasPipesEnabled = true;
+                    saveProgress();
+                }
+            } else if (jumpCount < 40) {
+                // Прыжки 14-40 (с трубами)
+                jumpCount++;
+                bird.velocity = JUMP_STRENGTH;
+                
+                // На 40-м прыжке активируем монетки
+                if (jumpCount === 40) {
+                    progressFlags.hasCoinsEnabled = true;
+                    saveProgress();
+                }
             } else {
-                // Обычный прыжок
+                // Обычный прыжок (все фичи открыты)
                 bird.velocity = JUMP_STRENGTH;
             }
         }
         
         // Проверка столкновений
         function checkCollision() {
-            if (!progressFlags.hasPipesEnabled) return false;
-            
+            // Проверка границ экрана - работает ВСЕГДА
             if (bird.y + bird.height >= canvas.height || bird.y <= 0) {
                 return true;
             }
             
-            for (let pipe of pipes) {
-                if (bird.x + bird.width >= pipe.x && bird.x <= pipe.x + PIPE_WIDTH) {
-                    if (bird.y <= pipe.gapY || bird.y + bird.height >= pipe.gapY + PIPE_GAP) {
-                        return true;
+            // Проверка труб - только когда они включены
+            if (progressFlags.hasPipesEnabled) {
+                for (let pipe of pipes) {
+                    if (bird.x + bird.width >= pipe.x && bird.x <= pipe.x + PIPE_WIDTH) {
+                        if (bird.y <= pipe.gapY || bird.y + bird.height >= pipe.gapY + PIPE_GAP) {
+                            return true;
+                        }
                     }
                 }
             }
@@ -280,6 +400,28 @@
             }
         }
         
+        // Сбор монет
+        function collectCoins() {
+            if (!progressFlags.hasCoinsEnabled) return;
+            
+            for (let coin of coins) {
+                if (coin.collected) continue;
+                
+                // Проверка столкновения птички с монетой
+                const dx = (bird.x + bird.width / 2) - coin.x;
+                const dy = (bird.y + bird.height / 2) - coin.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < coin.radius + bird.width / 2) {
+                    coin.collected = true;
+                    coinsThisRun++;
+                    totalCoins++;
+                    localStorage.setItem('totalCoins', totalCoins);
+                    totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
+                }
+            }
+        }
+        
         // Перезапуск игры
         function restart() {
             // Останавливаем старый цикл если есть
@@ -288,8 +430,23 @@
                 gameLoopInterval = null;
             }
             
+            // Сбрасываем счётчик прыжков
+            jumpCount = 0;
+            
+            // Сбрасываем монетки за катку
+            coinsThisRun = 0;
+            
+            // Сбрасываем opacity в зависимости от прогресса
+            if (progressFlags.hasBirdCreated) {
+                birdOpacity = 1;
+                birdAppearing = false;
+            } else {
+                birdOpacity = 0;
+                birdAppearing = false;
+            }
+            
             // Сбрасываем позицию в зависимости от прогресса
-            if (progressFlags.hasMovedLeft) {
+            if (progressFlags.hasBirdCreated && progressFlags.hasMovedLeft) {
                 bird.x = 80;
             } else {
                 bird.x = 200 - 15;
@@ -299,6 +456,7 @@
             bird.velocity = 0;
             bird.isMovingLeft = false;
             pipes = [];
+            coins = [];  // Очищаем монеты на экране
             frameCount = 0;
             score = 0;
             gameActive = true;
@@ -312,6 +470,13 @@
             } else {
                 scoreDiv.classList.remove('visible');
                 scoreVisible = false;
+            }
+            
+            // Счётчик монет видим если фича открыта
+            if (progressFlags.hasCoinsEnabled) {
+                totalCoinsDisplay.classList.add('visible');
+            } else {
+                totalCoinsDisplay.classList.remove('visible');
             }
             
             startGameLoop();
@@ -345,21 +510,46 @@
                 }
                 // НЕТ гравитации пока движемся
                 bird.velocity = 0;
-            } else if (progressFlags.hasActivatedJumps) {
-                // Гравитация включена только после второго клика
+            } else if (progressFlags.hasActivatedGravity) {
+                // Полная гравитация после 4-го прыжка
                 bird.velocity += GRAVITY;
+                bird.y += bird.velocity;
+            } else if (progressFlags.hasActivatedJumps) {
+                // Прыжки без гравитации - летим вверх и зависаем
+                if (bird.velocity < 0) {
+                    // Замедляем прыжок вверх
+                    bird.velocity += 0.5;
+                    if (bird.velocity >= 0) {
+                        bird.velocity = 0; // Останавливаемся, не падаем
+                    }
+                }
                 bird.y += bird.velocity;
             }
             // Если hasMovedLeft = true но hasActivatedJumps = false,
             // птичка просто висит слева без движения
             
-            // Рисуем птичку
-            ctx.fillStyle = 'white';
-            ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
+            // Анимация появления птички
+            if (birdAppearing) {
+                birdOpacity += 0.02;  // Плавное появление
+                if (birdOpacity >= 1) {
+                    birdOpacity = 1;
+                    birdAppearing = false;
+                }
+            } else if (progressFlags.hasBirdCreated) {
+                birdOpacity = 1;
+            }
+            
+            // Рисуем птичку (только если она уже создана)
+            if (progressFlags.hasBirdCreated) {
+                ctx.globalAlpha = birdOpacity;
+                ctx.fillStyle = 'white';
+                ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
+                ctx.globalAlpha = 1.0;  // Восстанавливаем прозрачность для остального
+            }
             
             frameCount++;
             
-            // Создание труб
+            // Создание труб (и монет вместе с ними)
             if (progressFlags.hasPipesEnabled && frameCount % PIPE_SPAWN_INTERVAL === 0) {
                 createPipe();
             }
@@ -383,6 +573,34 @@
                 ctx.fillRect(pipe.x, pipe.gapY + PIPE_GAP, PIPE_WIDTH, canvas.height - pipe.gapY - PIPE_GAP);
             }
             
+            // Обновление и отрисовка монет
+            for (let i = coins.length - 1; i >= 0; i--) {
+                let coin = coins[i];
+                
+                if (coin.collected) {
+                    coins.splice(i, 1);
+                    continue;
+                }
+                
+                coin.x -= PIPE_SPEED;
+                
+                if (coin.x + coin.radius < 0) {
+                    coins.splice(i, 1);
+                    continue;
+                }
+                
+                // Рисуем монету (белый кружок)
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(coin.x, coin.y, coin.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Сбор монет
+            if (progressFlags.hasCoinsEnabled) {
+                collectCoins();
+            }
+            
             // Обновление счёта
             if (progressFlags.hasPipesEnabled) {
                 updateScore();
@@ -397,6 +615,15 @@
                 }
                 finalScoreDiv.textContent = `Ваш счёт: ${score}`;
                 bestScoreDiv.textContent = `Лучший результат: ${bestScore}`;
+                
+                // Показываем монетки за катку если фича открыта
+                if (progressFlags.hasCoinsEnabled) {
+                    coinsThisRunDiv.textContent = `Монет собрано: ${coinsThisRun}`;
+                    coinsThisRunDiv.style.display = 'block';
+                } else {
+                    coinsThisRunDiv.style.display = 'none';
+                }
+                
                 gameOverDiv.style.display = 'block';
                 return;
             }
