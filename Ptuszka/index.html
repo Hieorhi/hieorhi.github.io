@@ -50,6 +50,17 @@
             pointer-events: none;
         }
         
+        #coins {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 32px;
+            font-weight: bold;
+            color: black;
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.8);
+            pointer-events: none;
+        }
+        
         #gameOver {
             position: absolute;
             top: 50%;
@@ -76,16 +87,24 @@
             margin-top: 10px;
             color: #666;
         }
+        
+        #sessionCoins {
+            font-size: 18px;
+            margin-top: 10px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
     <div id="gameContainer">
         <canvas id="gameCanvas" width="400" height="600"></canvas>
         <div id="score">0</div>
+        <div id="coins">🪙 0</div>
         <div id="gameOver">
             <div>ИГРА ОКОНЧЕНА</div>
             <div id="finalScore"></div>
             <div id="bestScore"></div>
+            <div id="sessionCoins"></div>
             <div style="font-size: 16px; margin-top: 15px;">Нажмите для перезапуска</div>
         </div>
     </div>
@@ -96,8 +115,10 @@
         const ctx = canvas.getContext('2d');
         const gameOverDiv = document.getElementById('gameOver');
         const scoreDiv = document.getElementById('score');
+        const coinsDiv = document.getElementById('coins');
         const finalScoreDiv = document.getElementById('finalScore');
         const bestScoreDiv = document.getElementById('bestScore');
+        const sessionCoinsDiv = document.getElementById('sessionCoins');
         
         // Основные параметры игры
         const GRAVITY = 0.5;
@@ -106,6 +127,8 @@
         const PIPE_WIDTH = 60;
         const PIPE_GAP = 180;
         const PIPE_SPAWN_INTERVAL = 90;
+        const COIN_RADIUS = 8;
+        const COIN_SPAWN_CHANCE = 0.7; // Вероятность появления монетки с трубой
         
         // Объект птички с её свойствами
         let bird = {
@@ -119,6 +142,9 @@
         // Массив для хранения всех труб на экране
         let pipes = [];
         
+        // Массив для хранения монеток
+        let coins = [];
+        
         // Счётчик кадров для определения момента создания новой трубы
         let frameCount = 0;
         
@@ -128,6 +154,8 @@
         // Переменные для счёта
         let score = 0;
         let bestScore = localStorage.getItem('bestScore') || 0;
+        let coinsCollected = 0;
+        let totalCoins = parseInt(localStorage.getItem('totalCoins')) || 0;
         
         // Функция для создания новой пары труб
         function createPipe() {
@@ -138,8 +166,18 @@
             pipes.push({
                 x: canvas.width,
                 gapY: gapY,
-                scored: false  // Флаг, чтобы начислить очки только один раз
+                scored: false  // Флаг, чтобы начислить очко только один раз
             });
+            
+            // Создаём монетку с определённой вероятностью
+            if (Math.random() < COIN_SPAWN_CHANCE) {
+                // Монетка появляется в центре промежутка между трубами
+                coins.push({
+                    x: canvas.width + PIPE_WIDTH / 2,
+                    y: gapY + PIPE_GAP / 2,
+                    collected: false
+                });
+            }
         }
         
         // Функция прыжка птички
@@ -170,6 +208,30 @@
             return false;
         }
         
+        // Функция проверки сбора монеток
+        function checkCoinCollection() {
+            for (let coin of coins) {
+                if (!coin.collected) {
+                    // Проверяем расстояние между птичкой и монеткой
+                    const birdCenterX = bird.x + bird.width / 2;
+                    const birdCenterY = bird.y + bird.height / 2;
+                    const distance = Math.sqrt(
+                        Math.pow(birdCenterX - coin.x, 2) + 
+                        Math.pow(birdCenterY - coin.y, 2)
+                    );
+                    
+                    // Если птичка достаточно близко к монетке
+                    if (distance < bird.width / 2 + COIN_RADIUS) {
+                        coin.collected = true;
+                        coinsCollected++;
+                        totalCoins++;
+                        coinsDiv.textContent = `🪙 ${totalCoins}`;
+                        localStorage.setItem('totalCoins', totalCoins);
+                    }
+                }
+            }
+        }
+        
         // Функция обновления счёта
         function updateScore() {
             for (let pipe of pipes) {
@@ -193,11 +255,14 @@
             bird.y = 250;
             bird.velocity = 0;
             pipes = [];
+            coins = [];
             frameCount = 0;
             score = 0;
+            coinsCollected = 0;
             gameActive = true;
             gameOverDiv.style.display = 'none';
             scoreDiv.textContent = '0';
+            coinsDiv.textContent = `🪙 ${totalCoins}`;
             gameLoop();
         }
         
@@ -252,6 +317,31 @@
                 ctx.strokeRect(pipe.x, pipe.gapY + PIPE_GAP, PIPE_WIDTH, canvas.height - pipe.gapY - PIPE_GAP);
             }
             
+            // Обновляем и рисуем монетки
+            for (let i = coins.length - 1; i >= 0; i--) {
+                let coin = coins[i];
+                
+                // Двигаем монетку влево
+                coin.x -= PIPE_SPEED;
+                
+                // Удаляем монетку, если она вышла за левую границу экрана
+                if (coin.x + COIN_RADIUS < 0) {
+                    coins.splice(i, 1);
+                    continue;
+                }
+                
+                // Рисуем монетку только если она не собрана
+                if (!coin.collected) {
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath();
+                    ctx.arc(coin.x, coin.y, COIN_RADIUS, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            
+            // Проверяем сбор монеток
+            checkCoinCollection();
+            
             // Обновляем счёт
             updateScore();
             
@@ -260,6 +350,7 @@
                 gameActive = false;
                 finalScoreDiv.textContent = `Ваш счёт: ${score}`;
                 bestScoreDiv.textContent = `Лучший результат: ${bestScore}`;
+                sessionCoinsDiv.textContent = `Монет собрано за катку: ${coinsCollected}`;
                 gameOverDiv.style.display = 'block';
                 return;
             }
@@ -298,6 +389,7 @@
         });
         
         // Запускаем игру
+        coinsDiv.textContent = `🪙 ${totalCoins}`;
         gameLoop();
     </script>
 </body>
