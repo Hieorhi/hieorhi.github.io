@@ -301,36 +301,43 @@
                 gapY: gapY,
                 scored: false
             });
+            
+            // Создаём монету вместе с трубой с вероятностью 40%
+            if (progressFlags.hasCoinsEnabled && Math.random() < 0.4) {
+                createCoinForPipe(gapY);
+            }
         }
         
-        // Функция создания монет (с вероятностью)
-        function createCoin() {
-            if (!progressFlags.hasCoinsEnabled) return;
-            
-            // 40% шанс создать монету
-            if (Math.random() > 0.4) return;
-            
-            // Два типа позиций монет
-            if (pipes.length > 0 && Math.random() > 0.5) {
-                // Тип 1: В gap'е последней трубы (50% если есть трубы)
-                const lastPipe = pipes[pipes.length - 1];
-                const coinYOffset = (Math.random() - 0.5) * (PIPE_GAP - 60);
-                const coinY = lastPipe.gapY + PIPE_GAP / 2 + coinYOffset;
+        // Создание монеты привязанной к конкретной трубе
+        function createCoinForPipe(pipeGapY) {
+            // Случайно выбираем: в gap'е или между трубами
+            if (Math.random() < 0.6) {
+                // 60% - монета в gap'е трубы
+                const coinYOffset = (Math.random() - 0.5) * (PIPE_GAP - 60); // Отступ 30px от краёв
+                const coinY = pipeGapY + PIPE_GAP / 2 + coinYOffset;
                 
                 coins.push({
-                    x: canvas.width + 50,
+                    x: canvas.width + 80,  // Чуть впереди трубы
                     y: coinY,
                     radius: 15,
                     collected: false
                 });
             } else {
-                // Тип 2: В воздухе между парами труб (случайная высота, безопасная)
-                const safeMinY = 80;
-                const safeMaxY = canvas.height - 80;
-                const coinY = Math.random() * (safeMaxY - safeMinY) + safeMinY;
+                // 40% - монета между трубами (над gap'ом или под)
+                let coinY;
+                if (Math.random() < 0.5) {
+                    // Над gap'ом
+                    coinY = pipeGapY - 40 - Math.random() * 60;
+                } else {
+                    // Под gap'ом
+                    coinY = pipeGapY + PIPE_GAP + 40 + Math.random() * 60;
+                }
+                
+                // Проверяем что не вылезли за границы
+                coinY = Math.max(50, Math.min(canvas.height - 50, coinY));
                 
                 coins.push({
-                    x: canvas.width + Math.random() * 100, // Случайный offset для разнообразия
+                    x: canvas.width + 120 + Math.random() * 80,  // Дальше от трубы
                     y: coinY,
                     radius: 15,
                     collected: false
@@ -447,12 +454,15 @@
             for (let coin of coins) {
                 if (coin.collected) continue;
                 
-                // Проверка столкновения птички с монетой
+                // Проверка столкновения птички с монетой (оптимизированная)
+                // Используем квадрат расстояния вместо Math.sqrt для ускорения
                 const dx = (bird.x + bird.width / 2) - coin.x;
                 const dy = (bird.y + bird.height / 2) - coin.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
+                const distanceSquared = dx * dx + dy * dy;
+                const radiusSum = coin.radius + bird.width / 2;
+                const radiusSumSquared = radiusSum * radiusSum;
                 
-                if (distance < coin.radius + bird.width / 2) {
+                if (distanceSquared < radiusSumSquared) {
                     coin.collected = true;
                     coinsThisRun++;
                     totalCoins++;
@@ -596,14 +606,9 @@
             
             frameCount++;
             
-            // Создание труб
+            // Создание труб (монеты создаются вместе с ними)
             if (progressFlags.hasPipesEnabled && frameCount % PIPE_SPAWN_INTERVAL === 0) {
                 createPipe();
-            }
-            
-            // Создание монет (чаще проверяем, но с вероятностью внутри функции)
-            if (progressFlags.hasCoinsEnabled && frameCount % 60 === 0) {
-                createCoin();
             }
             
             // Обновление и отрисовка труб
@@ -704,7 +709,9 @@
             }
         });
         
-        canvas.addEventListener('click', () => {
+        // Используем mousedown вместо click для мгновенной реакции
+        canvas.addEventListener('mousedown', (e) => {
+            e.preventDefault();  // Убираем задержки браузера
             if (gameActive) {
                 jump();
             } else {
@@ -719,7 +726,7 @@
             } else {
                 restart();
             }
-        });
+        }, { passive: false });  // passive: false чтобы preventDefault работал
         
         resetButton.addEventListener('click', () => {
             resetProgress();
