@@ -65,6 +65,7 @@
             border-radius: 5px;
             font-weight: bold;
             transition: background-color 0.2s;
+            z-index: 10;
         }
         
         #resetButton:hover {
@@ -89,7 +90,7 @@
             opacity: 1;
         }
         
-        #gameOver {
+        #menu {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -103,6 +104,18 @@
             border-radius: 10px;
             border: 3px solid white;
             color: white;
+            max-height: 90vh;
+            overflow-y: auto;
+            min-width: 300px;
+        }
+        
+        #menuTitle {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        
+        #statsSection {
+            display: none;
         }
         
         #finalScore {
@@ -140,6 +153,168 @@
             margin-top: 10px;
             color: #aaa;
         }
+        
+        .menu-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 8px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            min-width: 200px;
+        }
+        
+        .menu-button:hover {
+            background-color: #45a049;
+        }
+        
+        #shopButton {
+            background-color: #2196F3;
+        }
+        
+        #shopButton:hover {
+            background-color: #0b7dda;
+        }
+        
+        #shop {
+            display: none;
+            margin-top: 20px;
+            text-align: left;
+            max-width: 350px;
+        }
+        
+        .shop-item {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .shop-item-header {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .shop-item-desc {
+            font-size: 14px;
+            color: #ccc;
+            margin-bottom: 10px;
+        }
+        
+        .shop-item-status {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+        
+        .shop-buy-button {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        
+        .shop-buy-button:hover {
+            background-color: #0b7dda;
+        }
+        
+        .shop-buy-button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        .upgrade-section {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .upgrade-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 8px 0;
+        }
+        
+        .upgrade-info {
+            flex: 1;
+        }
+        
+        .upgrade-name {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .upgrade-level {
+            font-size: 12px;
+            color: #aaa;
+        }
+        
+        .upgrade-button {
+            background-color: #FF9800;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            min-width: 80px;
+        }
+        
+        .upgrade-button:hover {
+            background-color: #F57C00;
+        }
+        
+        .upgrade-button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        #backToMenu {
+            background-color: #666;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        #backToMenu:hover {
+            background-color: #555;
+        }
+        
+        .owned-indicator {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .max-level {
+            color: #FFD700;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -148,25 +323,89 @@
         <canvas id="gameCanvas" width="400" height="600"></canvas>
         <div id="score">0</div>
         <div id="totalCoinsDisplay">🪙 0</div>
-        <div id="gameOver">
-            <div>ИГРА ОКОНЧЕНА</div>
-            <div id="finalScore"></div>
-            <div id="bestScore"></div>
-            <div id="coinsThisRun"></div>
-            <div style="font-size: 16px; margin-top: 15px;">Нажмите для перезапуска</div>
+        
+        <!-- Единое меню для всех случаев -->
+        <div id="menu">
+            <div id="menuTitle">Ptuška</div>
+            
+            <!-- Статистика (показывается только после смерти) -->
+            <div id="statsSection">
+                <div id="finalScore"></div>
+                <div id="bestScore"></div>
+                <div id="coinsThisRun"></div>
+            </div>
+            
+            <div id="mainMenuSection">
+                <button class="menu-button" id="playButton">🎮 Играть</button>
+                <button class="menu-button" id="shopButton">🛒 Магазин</button>
+            </div>
+            
+            <!-- Магазин -->
+            <div id="shop">
+                <!-- Щит -->
+                <div class="shop-item" id="shieldItem">
+                    <div class="shop-item-header">
+                        <span>🛡️ Щит</span>
+                        <span>10 🪙</span>
+                    </div>
+                    <div class="shop-item-desc">Уничтожает одну трубу при столкновении</div>
+                    <div class="shop-item-status" id="shieldStatus">Не куплен</div>
+                    <button class="shop-buy-button" id="buyShield">Купить</button>
+                </div>
+                
+                <!-- Магнит -->
+                <div class="shop-item" id="magnetItem">
+                    <div class="shop-item-header">
+                        <span>🧲 Магнит</span>
+                        <span id="magnetPrice">20 🪙</span>
+                    </div>
+                    <div class="shop-item-desc">Притягивает монеты автоматически</div>
+                    <div class="shop-item-status" id="magnetStatus">Не куплен</div>
+                    <button class="shop-buy-button" id="buyMagnet">Купить</button>
+                    
+                    <!-- Улучшения магнита (появляются после покупки) -->
+                    <div class="upgrade-section" id="magnetUpgrades" style="display: none;">
+                        <div class="upgrade-row">
+                            <div class="upgrade-info">
+                                <div class="upgrade-name">📏 Радиус</div>
+                                <div class="upgrade-level" id="radiusLevel">Уровень: 0/3</div>
+                            </div>
+                            <button class="upgrade-button" id="upgradeRadius">5 🪙</button>
+                        </div>
+                        <div class="upgrade-row">
+                            <div class="upgrade-info">
+                                <div class="upgrade-name">⚡ Скорость</div>
+                                <div class="upgrade-level" id="speedLevel">Уровень: 0/3</div>
+                            </div>
+                            <button class="upgrade-button" id="upgradeSpeed">5 🪙</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="backToMenu">Назад</button>
+            </div>
         </div>
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const gameOverDiv = document.getElementById('gameOver');
+        const menuDiv = document.getElementById('menu');
+        const menuTitle = document.getElementById('menuTitle');
+        const statsSection = document.getElementById('statsSection');
+        const mainMenuSection = document.getElementById('mainMenuSection');
         const scoreDiv = document.getElementById('score');
         const finalScoreDiv = document.getElementById('finalScore');
         const bestScoreDiv = document.getElementById('bestScore');
         const coinsThisRunDiv = document.getElementById('coinsThisRun');
         const totalCoinsDisplay = document.getElementById('totalCoinsDisplay');
         const resetButton = document.getElementById('resetButton');
+        
+        // Кнопки меню
+        const playButton = document.getElementById('playButton');
+        const shopButton = document.getElementById('shopButton');
+        const shopDiv = document.getElementById('shop');
+        const backToMenuButton = document.getElementById('backToMenu');
         
         // Основные параметры игры
         const GRAVITY = 0.5;
@@ -186,10 +425,21 @@
             hasPipesEnabled: false,
             hasCoinsEnabled: false,
             hasSeenScore: false,
-            hasSeenCoins: false
+            hasSeenCoins: false,
+            hasPlayedFirstGame: false  // НОВЫЙ ФЛАГ
         };
         
-        // Счётчик прыжков - НЕ сохраняется, сбрасывается при каждом рестарте
+        // Покупки в магазине
+        let shopPurchases = {
+            hasShield: false,
+            hasMagnet: false,
+            magnetRadiusLevel: 0,
+            magnetSpeedLevel: 0
+        };
+        
+        // Состояние игры: 'menu', 'playing', 'gameOver'
+        let gameState = 'playing';
+        
         let jumpCount = 0;
         
         // Загружаем флаги из localStorage
@@ -198,11 +448,19 @@
             if (saved) {
                 progressFlags = JSON.parse(saved);
             }
+            
+            const savedShop = localStorage.getItem('shopPurchases');
+            if (savedShop) {
+                shopPurchases = JSON.parse(savedShop);
+            }
         }
         
-        // Сохраняем флаги в localStorage
         function saveProgress() {
             localStorage.setItem('progressFlags', JSON.stringify(progressFlags));
+        }
+        
+        function saveShop() {
+            localStorage.setItem('shopPurchases', JSON.stringify(shopPurchases));
         }
         
         // Полный сброс прогресса
@@ -215,20 +473,28 @@
                 hasPipesEnabled: false,
                 hasCoinsEnabled: false,
                 hasSeenScore: false,
-                hasSeenCoins: false
+                hasSeenCoins: false,
+                hasPlayedFirstGame: false
+            };
+            shopPurchases = {
+                hasShield: false,
+                hasMagnet: false,
+                magnetRadiusLevel: 0,
+                magnetSpeedLevel: 0
             };
             jumpCount = 0;
             bestScore = 0;
             totalCoins = 0;
             coinsThisRun = 0;
-            localStorage.clear();  // Полная очистка всех сохраненных данных
-            saveProgress();  // Сохраняем пустые флаги
+            localStorage.clear();
+            saveProgress();
+            saveShop();
             restart();
         }
         
         // Объект птички
         let bird = {
-            x: 200 - 15,  // Центр экрана по умолчанию
+            x: 200 - 15,
             y: 300 - 15,
             targetX: 80,
             width: 30,
@@ -238,205 +504,113 @@
         };
         
         let pipes = [];
-        let coins = [];  // Массив монет на экране
+        let coins = [];
         let frameCount = 0;
-        let gameActive = true;
         let score = 0;
-        let bestScore = localStorage.getItem('bestScore') || 0;
-        let totalCoins = parseInt(localStorage.getItem('totalCoins')) || 0;  // Общее за все катки
-        let coinsThisRun = 0;  // Собрано в этой катке
-        let scoreVisible = false;
-        let animationFrameId = null;  // Для requestAnimationFrame
+        let bestScore = parseInt(localStorage.getItem('bestScore')) || 0;
+        let totalCoins = parseInt(localStorage.getItem('totalCoins')) || 0;
+        let coinsThisRun = 0;
+        let gameActive = true;
+        let animationFrameId = null;
         
-        // Анимация появления птички
-        let birdOpacity = 0;
         let birdAppearing = false;
+        let birdOpacity = 0;
+        let passedPipes = new Set();
+        let scoreVisible = false;
         
-        // Инициализация при загрузке
+        // Магнит параметры
+        const MAGNET_BASE_RADIUS = 60;
+        const MAGNET_RADIUS_INCREMENT = 30;
+        const MAGNET_BASE_SPEED = 3;
+        const MAGNET_SPEED_INCREMENT = 2;
+        
+        function getMagnetRadius() {
+            if (!shopPurchases.hasMagnet) return 0;
+            return MAGNET_BASE_RADIUS + (shopPurchases.magnetRadiusLevel * MAGNET_RADIUS_INCREMENT);
+        }
+        
+        function getMagnetSpeed() {
+            if (!shopPurchases.hasMagnet) return 0;
+            return MAGNET_BASE_SPEED + (shopPurchases.magnetSpeedLevel * MAGNET_SPEED_INCREMENT);
+        }
+        
+        // Показать меню
+        function showMenu(isGameOver = false) {
+            gameState = isGameOver ? 'gameOver' : 'menu';
+            
+            if (isGameOver) {
+                menuTitle.textContent = 'ИГРА ОКОНЧЕНА';
+                statsSection.style.display = 'block';
+                playButton.textContent = '🔄 Играть снова';
+            } else {
+                menuTitle.textContent = 'Ptuška';
+                statsSection.style.display = 'none';
+                playButton.textContent = '🎮 Играть';
+            }
+            
+            menuDiv.style.display = 'block';
+            shopDiv.style.display = 'none';
+            mainMenuSection.style.display = 'block';
+        }
+        
+        // Скрыть меню и начать игру
+        function hideMenuAndPlay() {
+            menuDiv.style.display = 'none';
+            gameState = 'playing';
+            restart();
+        }
+        
+        // Инициализация
         function init() {
             loadProgress();
+            totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
             
-            // Инициализируем счётчик прыжков
-            jumpCount = 0;
-            
-            // Если птичка уже создана, показываем её сразу
-            if (progressFlags.hasBirdCreated) {
-                birdOpacity = 1;
-                birdAppearing = false;
-            } else {
-                birdOpacity = 0;
-                birdAppearing = false;
-            }
-            
-            // Если птичка уже создана и переместилась влево, стартуем слева
-            if (progressFlags.hasBirdCreated && progressFlags.hasMovedLeft) {
-                bird.x = 80;
-            } else {
-                bird.x = 200 - 15;  // Центр
-            }
-            
-            // Показываем счётчик если уже видели
-            if (progressFlags.hasSeenScore) {
-                scoreDiv.classList.add('visible');
-                scoreVisible = true;
-            }
-            
-            // Показываем счётчик монет если уже собирали
             if (progressFlags.hasSeenCoins) {
-                totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
                 totalCoinsDisplay.classList.add('visible');
+            }
+            
+            // Если обучение пройдено и уже играли - показываем меню
+            if (progressFlags.hasPlayedFirstGame) {
+                showMenu(false);
+                gameActive = false;
             }
         }
         
-        // Функция создания труб
+        // Создание трубы
         function createPipe() {
-            if (!progressFlags.hasPipesEnabled) return;
-            
-            const minGapY = 50;
-            const maxGapY = canvas.height - PIPE_GAP - 50;
+            const minGapY = 100;
+            const maxGapY = canvas.height - PIPE_GAP - 100;
             const gapY = Math.random() * (maxGapY - minGapY) + minGapY;
             
             pipes.push({
                 x: canvas.width,
                 gapY: gapY,
-                scored: false
+                passed: false
             });
             
-            // Создаём монету вместе с трубой с вероятностью 40%
-            if (progressFlags.hasCoinsEnabled && Math.random() < 0.4) {
-                createCoinForPipe(gapY);
-            }
-        }
-        
-        // Создание монеты привязанной к конкретной трубе
-        function createCoinForPipe(pipeGapY) {
-            // Случайно выбираем: в gap'е или между трубами
-            if (Math.random() < 0.6) {
-                // 60% - монета в gap'е трубы
-                const coinYOffset = (Math.random() - 0.5) * (PIPE_GAP - 60); // Отступ 30px от краёв
-                const coinY = pipeGapY + PIPE_GAP / 2 + coinYOffset;
-                
+            if (progressFlags.hasCoinsEnabled) {
                 coins.push({
-                    x: canvas.width + 80,  // Чуть впереди трубы
-                    y: coinY,
-                    radius: 15,
-                    collected: false
-                });
-            } else {
-                // 40% - монета между трубами (над gap'ом или под)
-                let coinY;
-                if (Math.random() < 0.5) {
-                    // Над gap'ом
-                    coinY = pipeGapY - 40 - Math.random() * 60;
-                } else {
-                    // Под gap'ом
-                    coinY = pipeGapY + PIPE_GAP + 40 + Math.random() * 60;
-                }
-                
-                // Проверяем что не вылезли за границы
-                coinY = Math.max(50, Math.min(canvas.height - 50, coinY));
-                
-                coins.push({
-                    x: canvas.width + 120 + Math.random() * 80,  // Дальше от трубы
-                    y: coinY,
-                    radius: 15,
+                    x: canvas.width + PIPE_WIDTH / 2,
+                    y: gapY + PIPE_GAP / 2,
+                    radius: 10,
                     collected: false
                 });
             }
-        }
-        
-        // Функция прыжка
-        function jump() {
-            if (!gameActive) return;
-            
-            if (!progressFlags.hasBirdCreated) {
-                // Самый первый клик - появление птички с анимацией
-                progressFlags.hasBirdCreated = true;
-                birdAppearing = true;
-                saveProgress();
-            } else if (!progressFlags.hasMovedLeft) {
-                // Второй клик - начать движение влево
-                bird.isMovingLeft = true;
-            } else if (progressFlags.hasPipesEnabled && progressFlags.hasCoinsEnabled) {
-                // Все этапы пройдены - обычный прыжок
-                bird.velocity = JUMP_STRENGTH;
-            } else if (!progressFlags.hasActivatedJumps) {
-                // Третий клик - активировать прыжки (первый прыжок, БЕЗ гравитации)
-                progressFlags.hasActivatedJumps = true;
-                jumpCount = 1;
-                saveProgress();
-                bird.velocity = JUMP_STRENGTH;
-            } else if (jumpCount < 3) {
-                // Прыжки 2-3 (всё ещё без гравитации)
-                jumpCount++;
-                bird.velocity = JUMP_STRENGTH;
-                
-                // На 3-м прыжке активируем гравитацию
-                if (jumpCount === 3) {
-                    progressFlags.hasActivatedGravity = true;
-                    saveProgress();
-                }
-            } else if (jumpCount < 13) {
-                // Прыжки 4-13 (с гравитацией)
-                jumpCount++;
-                bird.velocity = JUMP_STRENGTH;
-                
-                // На 13-м прыжке активируем трубы
-                if (jumpCount === 13) {
-                    progressFlags.hasPipesEnabled = true;
-                    saveProgress();
-                }
-            } else if (jumpCount < 40) {
-                // Прыжки 14-40 (с трубами)
-                jumpCount++;
-                bird.velocity = JUMP_STRENGTH;
-                
-                // На 40-м прыжке активируем монетки
-                if (jumpCount === 40) {
-                    progressFlags.hasCoinsEnabled = true;
-                    saveProgress();
-                }
-            } else {
-                // Обычный прыжок (все фичи открыты)
-                bird.velocity = JUMP_STRENGTH;
-            }
-        }
-        
-        // Проверка столкновений
-        function checkCollision() {
-            // Проверка границ экрана - работает ВСЕГДА
-            if (bird.y + bird.height >= canvas.height || bird.y <= 0) {
-                return true;
-            }
-            
-            // Проверка труб - только когда они включены
-            if (progressFlags.hasPipesEnabled) {
-                for (let pipe of pipes) {
-                    if (bird.x + bird.width >= pipe.x && bird.x <= pipe.x + PIPE_WIDTH) {
-                        if (bird.y <= pipe.gapY || bird.y + bird.height >= pipe.gapY + PIPE_GAP) {
-                            return true;
-                        }
-                    }
-                }
-            }
-            
-            return false;
         }
         
         // Обновление счёта
         function updateScore() {
             for (let pipe of pipes) {
-                if (!pipe.scored && pipe.x + PIPE_WIDTH < bird.x) {
-                    pipe.scored = true;
+                if (!pipe.passed && pipe.x + PIPE_WIDTH < bird.x) {
+                    pipe.passed = true;
                     score++;
                     scoreDiv.textContent = score;
                     
-                    // Показываем счётчик после первой трубы
                     if (!progressFlags.hasSeenScore) {
                         progressFlags.hasSeenScore = true;
-                        saveProgress();
                         scoreDiv.classList.add('visible');
                         scoreVisible = true;
+                        saveProgress();
                     }
                     
                     if (score > bestScore) {
@@ -449,60 +623,134 @@
         
         // Сбор монет
         function collectCoins() {
-            if (!progressFlags.hasCoinsEnabled) return;
+            const magnetRadius = getMagnetRadius();
+            const magnetSpeed = getMagnetSpeed();
             
             for (let coin of coins) {
                 if (coin.collected) continue;
                 
-                // Проверка столкновения птички с монетой (оптимизированная)
-                // Используем квадрат расстояния вместо Math.sqrt для ускорения
-                const dx = (bird.x + bird.width / 2) - coin.x;
-                const dy = (bird.y + bird.height / 2) - coin.y;
-                const distanceSquared = dx * dx + dy * dy;
-                const radiusSum = coin.radius + bird.width / 2;
-                const radiusSumSquared = radiusSum * radiusSum;
+                const dx = coin.x - (bird.x + bird.width / 2);
+                const dy = coin.y - (bird.y + bird.height / 2);
+                const distance = Math.sqrt(dx * dx + dy * dy);
                 
-                if (distanceSquared < radiusSumSquared) {
+                if (shopPurchases.hasMagnet && distance < magnetRadius) {
+                    const angle = Math.atan2(dy, dx);
+                    coin.x -= Math.cos(angle) * magnetSpeed;
+                    coin.y -= Math.sin(angle) * magnetSpeed;
+                }
+                
+                if (distance < coin.radius + bird.width / 2) {
                     coin.collected = true;
-                    coinsThisRun++;
                     totalCoins++;
+                    coinsThisRun++;
                     localStorage.setItem('totalCoins', totalCoins);
                     totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
                     
-                    // Показываем счётчик монет при первом сборе
                     if (!progressFlags.hasSeenCoins) {
                         progressFlags.hasSeenCoins = true;
-                        saveProgress();
                         totalCoinsDisplay.classList.add('visible');
+                        saveProgress();
                     }
                 }
             }
         }
         
-        // Перезапуск игры
-        function restart() {
-            // Останавливаем старый цикл если есть
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-                animationFrameId = null;
+        // Проверка столкновений
+        function checkCollision() {
+            if (!progressFlags.hasPipesEnabled) return false;
+            
+            // Проверка границ
+            if (bird.y < 0 || bird.y + bird.height > canvas.height) {
+                if (shopPurchases.hasShield) {
+                    shopPurchases.hasShield = false;
+                    saveShop();
+                    bird.y = Math.max(0, Math.min(bird.y, canvas.height - bird.height));
+                    bird.velocity = 0;
+                    return false;
+                }
+                return true;
             }
             
-            // Сбрасываем счётчик прыжков
-            jumpCount = 0;
+            // Проверка столкновений с трубами
+            for (let i = pipes.length - 1; i >= 0; i--) {
+                let pipe = pipes[i];
+                
+                if (bird.x + bird.width > pipe.x && 
+                    bird.x < pipe.x + PIPE_WIDTH) {
+                    if (bird.y < pipe.gapY || 
+                        bird.y + bird.height > pipe.gapY + PIPE_GAP) {
+                        
+                        // Если есть щит - уничтожаем трубу
+                        if (shopPurchases.hasShield) {
+                            shopPurchases.hasShield = false;
+                            saveShop();
+                            
+                            // Удаляем трубу из массива
+                            pipes.splice(i, 1);
+                            
+                            return false;
+                        }
+                        return true;
+                    }
+                }
+            }
             
-            // Сбрасываем монетки за катку
+            return false;
+        }
+        
+        // Прыжок
+        function jump() {
+            if (!progressFlags.hasBirdCreated) {
+                progressFlags.hasBirdCreated = true;
+                birdAppearing = true;
+                birdOpacity = 0;
+                saveProgress();
+                return;
+            }
+            
+            if (!progressFlags.hasMovedLeft) {
+                bird.isMovingLeft = true;
+                return;
+            }
+            
+            if (!progressFlags.hasActivatedJumps) {
+                progressFlags.hasActivatedJumps = true;
+                saveProgress();
+            }
+            
+            jumpCount++;
+            
+            if (jumpCount >= 4 && !progressFlags.hasActivatedGravity) {
+                progressFlags.hasActivatedGravity = true;
+                saveProgress();
+            }
+            
+            if (jumpCount >= 5 && !progressFlags.hasPipesEnabled) {
+                progressFlags.hasPipesEnabled = true;
+                saveProgress();
+            }
+            
+            if (jumpCount >= 6 && !progressFlags.hasCoinsEnabled) {
+                progressFlags.hasCoinsEnabled = true;
+                saveProgress();
+            }
+            
+            bird.velocity = JUMP_STRENGTH;
+        }
+        
+        // Перезапуск игры
+        function restart() {
             coinsThisRun = 0;
             
-            // Сбрасываем opacity в зависимости от прогресса
-            if (progressFlags.hasBirdCreated) {
-                birdOpacity = 1;
+            if (!progressFlags.hasBirdCreated) {
                 birdAppearing = false;
-            } else {
+                birdOpacity = 0;
+            } else if (!birdAppearing) {
+                birdAppearing = false;
                 birdOpacity = 0;
                 birdAppearing = false;
             }
             
-            // Сбрасываем позицию в зависимости от прогресса
             if (progressFlags.hasBirdCreated && progressFlags.hasMovedLeft) {
                 bird.x = 80;
             } else {
@@ -513,14 +761,13 @@
             bird.velocity = 0;
             bird.isMovingLeft = false;
             pipes = [];
-            coins = [];  // Очищаем монеты на экране
+            coins = [];
             frameCount = 0;
             score = 0;
             gameActive = true;
-            gameOverDiv.style.display = 'none';
+            menuDiv.style.display = 'none';
             scoreDiv.textContent = '0';
             
-            // Счётчик видим только если уже проходили первую трубу
             if (progressFlags.hasSeenScore) {
                 scoreDiv.classList.add('visible');
                 scoreVisible = true;
@@ -529,7 +776,6 @@
                 scoreVisible = false;
             }
             
-            // Счётчик монет видим только если уже собирали монеты
             if (progressFlags.hasSeenCoins) {
                 totalCoinsDisplay.classList.add('visible');
             } else {
@@ -549,13 +795,11 @@
                 return;
             }
             
-            // Очистка экрана
             ctx.fillStyle = 'black';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             // Логика движения птички
             if (bird.isMovingLeft && !progressFlags.hasMovedLeft) {
-                // Плавное движение влево
                 if (bird.x > bird.targetX) {
                     bird.x -= MOVE_SPEED;
                     if (bird.x <= bird.targetX) {
@@ -565,29 +809,23 @@
                         saveProgress();
                     }
                 }
-                // НЕТ гравитации пока движемся
                 bird.velocity = 0;
             } else if (progressFlags.hasActivatedGravity) {
-                // Полная гравитация после 4-го прыжка
                 bird.velocity += GRAVITY;
                 bird.y += bird.velocity;
             } else if (progressFlags.hasActivatedJumps) {
-                // Прыжки без гравитации - летим вверх и зависаем
                 if (bird.velocity < 0) {
-                    // Замедляем прыжок вверх
                     bird.velocity += 0.5;
                     if (bird.velocity >= 0) {
-                        bird.velocity = 0; // Останавливаемся, не падаем
+                        bird.velocity = 0;
                     }
                 }
                 bird.y += bird.velocity;
             }
-            // Если hasMovedLeft = true но hasActivatedJumps = false,
-            // птичка просто висит слева без движения
             
             // Анимация появления птички
             if (birdAppearing) {
-                birdOpacity += 0.02;  // Плавное появление
+                birdOpacity += 0.02;
                 if (birdOpacity >= 1) {
                     birdOpacity = 1;
                     birdAppearing = false;
@@ -596,17 +834,39 @@
                 birdOpacity = 1;
             }
             
-            // Рисуем птичку (только если она уже создана)
+            // Визуализация магнита (радиус)
+            if (shopPurchases.hasMagnet && progressFlags.hasBirdCreated) {
+                const magnetRadius = getMagnetRadius();
+                ctx.globalAlpha = 0.15;
+                ctx.fillStyle = 'cyan';
+                ctx.beginPath();
+                ctx.arc(bird.x + bird.width / 2, bird.y + bird.height / 2, magnetRadius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
+            
+            // Рисуем птичку
             if (progressFlags.hasBirdCreated) {
                 ctx.globalAlpha = birdOpacity;
+                
+                // Щит (светящаяся рамка)
+                if (shopPurchases.hasShield) {
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = 'cyan';
+                    ctx.strokeStyle = 'cyan';
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(bird.x - 2, bird.y - 2, bird.width + 4, bird.height + 4);
+                    ctx.shadowBlur = 0;
+                }
+                
                 ctx.fillStyle = 'white';
                 ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
-                ctx.globalAlpha = 1.0;  // Восстанавливаем прозрачность для остального
+                ctx.globalAlpha = 1.0;
             }
             
             frameCount++;
             
-            // Создание труб (монеты создаются вместе с ними)
+            // Создание труб
             if (progressFlags.hasPipesEnabled && frameCount % PIPE_SPAWN_INTERVAL === 0) {
                 createPipe();
             }
@@ -621,12 +881,8 @@
                     continue;
                 }
                 
-                // Верхняя труба
                 ctx.fillStyle = 'white';
                 ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.gapY);
-                
-                // Нижняя труба
-                ctx.fillStyle = 'white';
                 ctx.fillRect(pipe.x, pipe.gapY + PIPE_GAP, PIPE_WIDTH, canvas.height - pipe.gapY - PIPE_GAP);
             }
             
@@ -646,7 +902,6 @@
                     continue;
                 }
                 
-                // Рисуем монету (белый кружок)
                 ctx.fillStyle = 'white';
                 ctx.beginPath();
                 ctx.arc(coin.x, coin.y, coin.radius, 0, Math.PI * 2);
@@ -670,10 +925,16 @@
                     cancelAnimationFrame(animationFrameId);
                     animationFrameId = null;
                 }
+                
+                // Отмечаем что сыграли первую игру
+                if (!progressFlags.hasPlayedFirstGame) {
+                    progressFlags.hasPlayedFirstGame = true;
+                    saveProgress();
+                }
+                
                 finalScoreDiv.textContent = `Ваш счёт: ${score}`;
                 bestScoreDiv.textContent = `Лучший результат: ${bestScore}`;
                 
-                // Показываем монетки за катку если фича открыта
                 if (progressFlags.hasCoinsEnabled) {
                     coinsThisRunDiv.textContent = `Монет собрано: ${coinsThisRun}`;
                     coinsThisRunDiv.style.display = 'block';
@@ -681,15 +942,14 @@
                     coinsThisRunDiv.style.display = 'none';
                 }
                 
-                gameOverDiv.style.display = 'block';
+                updateShopUI();
+                showMenu(true);
                 return;
             }
             
-            // Запрашиваем следующий кадр
             animationFrameId = requestAnimationFrame(gameLoop);
         }
         
-        // Функция запуска игрового цикла
         function startGameLoop() {
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
@@ -697,36 +957,186 @@
             animationFrameId = requestAnimationFrame(gameLoop);
         }
         
-        // Обработчики событий
+        // === МАГАЗИН ===
+        
+        function updateShopUI() {
+            // Обновление статуса щита
+            const shieldStatus = document.getElementById('shieldStatus');
+            const buyShieldBtn = document.getElementById('buyShield');
+            
+            if (shopPurchases.hasShield) {
+                shieldStatus.innerHTML = '<span class="owned-indicator">✓ Куплен (активен)</span>';
+                buyShieldBtn.disabled = true;
+                buyShieldBtn.textContent = 'Уже куплен';
+            } else {
+                shieldStatus.textContent = 'Не куплен';
+                buyShieldBtn.disabled = totalCoins < 10;
+                buyShieldBtn.textContent = totalCoins < 10 ? 'Недостаточно монет' : 'Купить';
+            }
+            
+            // Обновление статуса магнита
+            const magnetStatus = document.getElementById('magnetStatus');
+            const buyMagnetBtn = document.getElementById('buyMagnet');
+            const magnetUpgrades = document.getElementById('magnetUpgrades');
+            
+            if (shopPurchases.hasMagnet) {
+                magnetStatus.innerHTML = '<span class="owned-indicator">✓ Куплен</span>';
+                buyMagnetBtn.style.display = 'none';
+                magnetUpgrades.style.display = 'block';
+                
+                // Обновление улучшений радиуса
+                const radiusLevel = document.getElementById('radiusLevel');
+                const upgradeRadiusBtn = document.getElementById('upgradeRadius');
+                const radiusLvl = shopPurchases.magnetRadiusLevel;
+                radiusLevel.textContent = `Уровень: ${radiusLvl}/3`;
+                
+                if (radiusLvl >= 3) {
+                    radiusLevel.innerHTML = '<span class="max-level">MAX УРОВЕНЬ</span>';
+                    upgradeRadiusBtn.disabled = true;
+                    upgradeRadiusBtn.textContent = 'МАКС';
+                } else {
+                    const prices = [5, 10, 15];
+                    const price = prices[radiusLvl];
+                    upgradeRadiusBtn.disabled = totalCoins < price;
+                    upgradeRadiusBtn.textContent = totalCoins < price ? `${price} 🪙 (мало)` : `${price} 🪙`;
+                }
+                
+                // Обновление улучшений скорости
+                const speedLevel = document.getElementById('speedLevel');
+                const upgradeSpeedBtn = document.getElementById('upgradeSpeed');
+                const speedLvl = shopPurchases.magnetSpeedLevel;
+                speedLevel.textContent = `Уровень: ${speedLvl}/3`;
+                
+                if (speedLvl >= 3) {
+                    speedLevel.innerHTML = '<span class="max-level">MAX УРОВЕНЬ</span>';
+                    upgradeSpeedBtn.disabled = true;
+                    upgradeSpeedBtn.textContent = 'МАКС';
+                } else {
+                    const prices = [5, 10, 15];
+                    const price = prices[speedLvl];
+                    upgradeSpeedBtn.disabled = totalCoins < price;
+                    upgradeSpeedBtn.textContent = totalCoins < price ? `${price} 🪙 (мало)` : `${price} 🪙`;
+                }
+            } else {
+                magnetStatus.textContent = 'Не куплен';
+                buyMagnetBtn.style.display = 'block';
+                buyMagnetBtn.disabled = totalCoins < 20;
+                buyMagnetBtn.textContent = totalCoins < 20 ? 'Недостаточно монет' : 'Купить';
+                magnetUpgrades.style.display = 'none';
+            }
+        }
+        
+        function buyShield() {
+            if (totalCoins >= 10 && !shopPurchases.hasShield) {
+                totalCoins -= 10;
+                shopPurchases.hasShield = true;
+                localStorage.setItem('totalCoins', totalCoins);
+                totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
+                saveShop();
+                updateShopUI();
+            }
+        }
+        
+        function buyMagnet() {
+            if (totalCoins >= 20 && !shopPurchases.hasMagnet) {
+                totalCoins -= 20;
+                shopPurchases.hasMagnet = true;
+                localStorage.setItem('totalCoins', totalCoins);
+                totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
+                saveShop();
+                updateShopUI();
+            }
+        }
+        
+        function upgradeRadius() {
+            const prices = [5, 10, 15];
+            const currentLevel = shopPurchases.magnetRadiusLevel;
+            
+            if (currentLevel < 3 && totalCoins >= prices[currentLevel]) {
+                totalCoins -= prices[currentLevel];
+                shopPurchases.magnetRadiusLevel++;
+                localStorage.setItem('totalCoins', totalCoins);
+                totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
+                saveShop();
+                updateShopUI();
+            }
+        }
+        
+        function upgradeSpeed() {
+            const prices = [5, 10, 15];
+            const currentLevel = shopPurchases.magnetSpeedLevel;
+            
+            if (currentLevel < 3 && totalCoins >= prices[currentLevel]) {
+                totalCoins -= prices[currentLevel];
+                shopPurchases.magnetSpeedLevel++;
+                localStorage.setItem('totalCoins', totalCoins);
+                totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
+                saveShop();
+                updateShopUI();
+            }
+        }
+        
+        // === СОБЫТИЯ ===
+        
+        // Кнопка "Играть"
+        playButton.addEventListener('click', () => {
+            hideMenuAndPlay();
+        });
+        
+        // Кнопка "Магазин"
+        shopButton.addEventListener('click', () => {
+            shopDiv.style.display = 'block';
+            mainMenuSection.style.display = 'none';
+            updateShopUI();
+        });
+        
+        // Кнопка "Назад" в магазине
+        backToMenuButton.addEventListener('click', () => {
+            shopDiv.style.display = 'none';
+            mainMenuSection.style.display = 'block';
+        });
+        
+        // Покупки в магазине
+        document.getElementById('buyShield').addEventListener('click', buyShield);
+        document.getElementById('buyMagnet').addEventListener('click', buyMagnet);
+        document.getElementById('upgradeRadius').addEventListener('click', upgradeRadius);
+        document.getElementById('upgradeSpeed').addEventListener('click', upgradeSpeed);
+        
+        // Управление игрой
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space') {
                 e.preventDefault();
-                if (gameActive) {
+                if (gameState === 'playing' && gameActive) {
                     jump();
-                } else {
-                    restart();
+                } else if (gameState === 'menu' || gameState === 'gameOver') {
+                    if (shopDiv.style.display === 'none') {
+                        hideMenuAndPlay();
+                    }
                 }
             }
         });
         
-        // Используем mousedown вместо click для мгновенной реакции
         canvas.addEventListener('mousedown', (e) => {
-            e.preventDefault();  // Убираем задержки браузера
-            if (gameActive) {
+            e.preventDefault();
+            if (gameState === 'playing' && gameActive) {
                 jump();
-            } else {
-                restart();
+            } else if (gameState === 'menu' || gameState === 'gameOver') {
+                if (shopDiv.style.display === 'none') {
+                    hideMenuAndPlay();
+                }
             }
         });
         
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            if (gameActive) {
+            if (gameState === 'playing' && gameActive) {
                 jump();
-            } else {
-                restart();
+            } else if (gameState === 'menu' || gameState === 'gameOver') {
+                if (shopDiv.style.display === 'none') {
+                    hideMenuAndPlay();
+                }
             }
-        }, { passive: false });  // passive: false чтобы preventDefault работал
+        }, { passive: false });
         
         resetButton.addEventListener('click', () => {
             resetProgress();
@@ -734,7 +1144,11 @@
         
         // Запуск
         init();
-        startGameLoop();
+        
+        // Запускаем игру только если меню не показано
+        if (gameState === 'playing') {
+            startGameLoop();
+        }
     </script>
 </body>
 </html>
