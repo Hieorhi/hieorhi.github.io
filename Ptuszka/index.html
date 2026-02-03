@@ -184,7 +184,16 @@
             display: none;
             margin-top: 20px;
             text-align: left;
-            max-width: 350px;
+            max-width: 400px;
+        }
+        
+        .shop-section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 20px 0 10px 0;
+            color: #FFD700;
+            border-bottom: 2px solid #FFD700;
+            padding-bottom: 5px;
         }
         
         .shop-item {
@@ -289,6 +298,42 @@
             opacity: 0.5;
         }
         
+        .selection-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .selection-item {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .selection-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .selection-item.selected {
+            background-color: rgba(76, 175, 80, 0.3);
+            border-color: #4CAF50;
+        }
+        
+        .selection-icon {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+        
+        .selection-name {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
         #backToMenu {
             background-color: #666;
             color: white;
@@ -324,11 +369,9 @@
         <div id="score">0</div>
         <div id="totalCoinsDisplay">🪙 0</div>
         
-        <!-- Единое меню для всех случаев -->
         <div id="menu">
             <div id="menuTitle">Ptuška</div>
             
-            <!-- Статистика (показывается только после смерти) -->
             <div id="statsSection">
                 <div id="finalScore"></div>
                 <div id="bestScore"></div>
@@ -340,9 +383,10 @@
                 <button class="menu-button" id="shopButton">🛒 Магазин</button>
             </div>
             
-            <!-- Магазин -->
             <div id="shop">
-                <!-- Щит -->
+                <!-- Усиления -->
+                <div class="shop-section-title">⚡ Усиления</div>
+                
                 <div class="shop-item" id="shieldItem">
                     <div class="shop-item-header">
                         <span>🛡️ Щит</span>
@@ -353,7 +397,6 @@
                     <button class="shop-buy-button" id="buyShield">Купить</button>
                 </div>
                 
-                <!-- Магнит -->
                 <div class="shop-item" id="magnetItem">
                     <div class="shop-item-header">
                         <span>🧲 Магнит</span>
@@ -363,7 +406,6 @@
                     <div class="shop-item-status" id="magnetStatus">Не куплен</div>
                     <button class="shop-buy-button" id="buyMagnet">Купить</button>
                     
-                    <!-- Улучшения магнита (появляются после покупки) -->
                     <div class="upgrade-section" id="magnetUpgrades" style="display: none;">
                         <div class="upgrade-row">
                             <div class="upgrade-info">
@@ -380,6 +422,57 @@
                             <button class="upgrade-button" id="upgradeSpeed">5 🪙</button>
                         </div>
                     </div>
+                </div>
+                
+                <!-- Визуальные эффекты -->
+                <div class="shop-section-title">🎨 Визуальные эффекты</div>
+                
+                <div class="shop-item" id="animationItem">
+                    <div class="shop-item-header">
+                        <span>🔄 Анимация поворота</span>
+                        <span>15 🪙</span>
+                    </div>
+                    <div class="shop-item-desc">Птичка поворачивается при прыжке и падении</div>
+                    <div class="shop-item-status" id="animationStatus">Не куплена</div>
+                    <button class="shop-buy-button" id="buyAnimation">Купить</button>
+                </div>
+                
+                <div id="animationSelection" style="display: none; margin-top: 10px;">
+                    <div style="font-size: 14px; margin-bottom: 10px;">Выберите анимацию:</div>
+                    <div class="selection-grid" id="animationGrid"></div>
+                </div>
+                
+                <div class="shop-item" id="colorInversionItem">
+                    <div class="shop-item-header">
+                        <span>🌓 Инверсия цвета</span>
+                        <span>5 🪙</span>
+                    </div>
+                    <div class="shop-item-desc">Меняет цветовую схему: чёрное на белое</div>
+                    <div class="shop-item-status" id="colorInversionStatus">Не куплена</div>
+                    <button class="shop-buy-button" id="buyColorInversion">Купить</button>
+                </div>
+                
+                <div id="colorModeSelection" style="display: none; margin-top: 10px;">
+                    <div style="font-size: 14px; margin-bottom: 10px;">Цветовая схема:</div>
+                    <div class="selection-grid" id="colorModeGrid"></div>
+                </div>
+                
+                <!-- Скины -->
+                <div class="shop-section-title">🎨 Скины</div>
+                
+                <div class="shop-item" id="triangleSkinItem">
+                    <div class="shop-item-header">
+                        <span>🔺 Треугольник</span>
+                        <span>5 🪙</span>
+                    </div>
+                    <div class="shop-item-desc">Новая форма для вашей птички</div>
+                    <div class="shop-item-status" id="triangleSkinStatus">Не куплен</div>
+                    <button class="shop-buy-button" id="buyTriangleSkin">Купить</button>
+                </div>
+                
+                <div id="skinSelection" style="margin-top: 10px;">
+                    <div style="font-size: 14px; margin-bottom: 10px;">Выберите скин:</div>
+                    <div class="selection-grid" id="skinGrid"></div>
                 </div>
                 
                 <button id="backToMenu">Назад</button>
@@ -401,13 +494,11 @@
         const totalCoinsDisplay = document.getElementById('totalCoinsDisplay');
         const resetButton = document.getElementById('resetButton');
         
-        // Кнопки меню
         const playButton = document.getElementById('playButton');
         const shopButton = document.getElementById('shopButton');
         const shopDiv = document.getElementById('shop');
         const backToMenuButton = document.getElementById('backToMenu');
         
-        // Основные параметры игры
         const GRAVITY = 0.5;
         const JUMP_STRENGTH = -8;
         const PIPE_SPEED = 3;
@@ -416,7 +507,8 @@
         const PIPE_SPAWN_INTERVAL = 90;
         const MOVE_SPEED = 2;
         
-        // Флаги прогрессии (сохраняются в localStorage)
+        let debugMode = false;
+        
         let progressFlags = {
             hasBirdCreated: false,
             hasMovedLeft: false,
@@ -426,23 +518,27 @@
             hasCoinsEnabled: false,
             hasSeenScore: false,
             hasSeenCoins: false,
-            hasPlayedFirstGame: false  // НОВЫЙ ФЛАГ
+            hasPlayedFirstGame: false
         };
         
-        // Покупки в магазине
         let shopPurchases = {
             hasShield: false,
             hasMagnet: false,
             magnetRadiusLevel: 0,
-            magnetSpeedLevel: 0
+            magnetSpeedLevel: 0,
+            animations: {
+                rotation: false
+            },
+            currentAnimation: 'none',
+            hasColorInversion: false,
+            currentColorMode: 'normal',
+            ownedSkins: ['square'],
+            currentSkin: 'square'
         };
         
-        // Состояние игры: 'menu', 'playing', 'gameOver'
         let gameState = 'playing';
-        
         let jumpCount = 0;
         
-        // Загружаем флаги из localStorage
         function loadProgress() {
             const saved = localStorage.getItem('progressFlags');
             if (saved) {
@@ -451,7 +547,19 @@
             
             const savedShop = localStorage.getItem('shopPurchases');
             if (savedShop) {
-                shopPurchases = JSON.parse(savedShop);
+                const parsed = JSON.parse(savedShop);
+                shopPurchases = {
+                    hasShield: parsed.hasShield || false,
+                    hasMagnet: parsed.hasMagnet || false,
+                    magnetRadiusLevel: parsed.magnetRadiusLevel || 0,
+                    magnetSpeedLevel: parsed.magnetSpeedLevel || 0,
+                    animations: parsed.animations || { rotation: false },
+                    currentAnimation: parsed.currentAnimation || 'none',
+                    hasColorInversion: parsed.hasColorInversion || false,
+                    currentColorMode: parsed.currentColorMode || 'normal',
+                    ownedSkins: parsed.ownedSkins || ['square'],
+                    currentSkin: parsed.currentSkin || 'square'
+                };
             }
         }
         
@@ -463,7 +571,6 @@
             localStorage.setItem('shopPurchases', JSON.stringify(shopPurchases));
         }
         
-        // Полный сброс прогресса
         function resetProgress() {
             progressFlags = {
                 hasBirdCreated: false,
@@ -480,7 +587,13 @@
                 hasShield: false,
                 hasMagnet: false,
                 magnetRadiusLevel: 0,
-                magnetSpeedLevel: 0
+                magnetSpeedLevel: 0,
+                animations: { rotation: false },
+                currentAnimation: 'none',
+                hasColorInversion: false,
+                currentColorMode: 'normal',
+                ownedSkins: ['square'],
+                currentSkin: 'square'
             };
             jumpCount = 0;
             bestScore = 0;
@@ -492,7 +605,31 @@
             restart();
         }
         
-        // Объект птички
+        // Цвета в зависимости от режима
+        function getColors() {
+            if (shopPurchases.currentColorMode === 'inverted') {
+                return {
+                    background: 'white',
+                    foreground: 'black',
+                    shieldColor: 'purple',
+                    magnetColor: 'blue',
+                    debugHitbox: 'lime',
+                    debugPoints: 'orange',
+                    debugCenter: 'red'
+                };
+            } else {
+                return {
+                    background: 'black',
+                    foreground: 'white',
+                    shieldColor: 'cyan',
+                    magnetColor: 'cyan',
+                    debugHitbox: 'red',
+                    debugPoints: 'yellow',
+                    debugCenter: 'lime'
+                };
+            }
+        }
+        
         let bird = {
             x: 200 - 15,
             y: 300 - 15,
@@ -500,7 +637,9 @@
             width: 30,
             height: 30,
             velocity: 0,
-            isMovingLeft: false
+            isMovingLeft: false,
+            rotation: 0,
+            targetRotation: 0
         };
         
         let pipes = [];
@@ -518,7 +657,6 @@
         let passedPipes = new Set();
         let scoreVisible = false;
         
-        // Магнит параметры
         const MAGNET_BASE_RADIUS = 60;
         const MAGNET_RADIUS_INCREMENT = 30;
         const MAGNET_BASE_SPEED = 3;
@@ -534,7 +672,121 @@
             return MAGNET_BASE_SPEED + (shopPurchases.magnetSpeedLevel * MAGNET_SPEED_INCREMENT);
         }
         
-        // Показать меню
+        // Получение смещения центра масс для разных скинов
+        function getCenterOffset() {
+            if (shopPurchases.currentSkin === 'square') {
+                return { x: 0, y: 0 };
+            } else if (shopPurchases.currentSkin === 'triangle') {
+                // Центроид треугольника смещен влево
+                // Вершины: (halfW, 0), (-halfW, -halfH), (-halfW, halfH)
+                // Центроид: (-halfW/3, 0)
+                return { x: -bird.width / 6, y: 0 };
+            }
+            return { x: 0, y: 0 };
+        }
+        
+        // Получение реального центра птички с учетом формы
+        function getBirdCenter() {
+            const offset = getCenterOffset();
+            const cx = bird.x + bird.width / 2;
+            const cy = bird.y + bird.height / 2;
+            
+            // Применяем поворот к смещению
+            const cos = Math.cos(bird.rotation);
+            const sin = Math.sin(bird.rotation);
+            
+            return {
+                x: cx + (offset.x * cos - offset.y * sin),
+                y: cy + (offset.x * sin + offset.y * cos)
+            };
+        }
+        
+        function getBirdHitboxPoints() {
+            const cx = bird.x + bird.width / 2;
+            const cy = bird.y + bird.height / 2;
+            const points = [];
+            
+            if (shopPurchases.currentSkin === 'square') {
+                const halfW = bird.width / 2;
+                const halfH = bird.height / 2;
+                points.push(
+                    { x: -halfW, y: -halfH },
+                    { x: halfW, y: -halfH },
+                    { x: halfW, y: halfH },
+                    { x: -halfW, y: halfH }
+                );
+            } else if (shopPurchases.currentSkin === 'triangle') {
+                const halfW = bird.width / 2;
+                const halfH = bird.height / 2;
+                points.push(
+                    { x: halfW, y: 0 },
+                    { x: -halfW, y: -halfH },
+                    { x: -halfW, y: halfH }
+                );
+            }
+            
+            const rotatedPoints = [];
+            const cos = Math.cos(bird.rotation);
+            const sin = Math.sin(bird.rotation);
+            
+            for (let p of points) {
+                rotatedPoints.push({
+                    x: cx + (p.x * cos - p.y * sin),
+                    y: cy + (p.x * sin + p.y * cos)
+                });
+            }
+            
+            return rotatedPoints;
+        }
+        
+        function polygonRectCollision(polyPoints, rectX, rectY, rectW, rectH) {
+            const rectPoints = [
+                { x: rectX, y: rectY },
+                { x: rectX + rectW, y: rectY },
+                { x: rectX + rectW, y: rectY + rectH },
+                { x: rectX, y: rectY + rectH }
+            ];
+            
+            const axes = [];
+            
+            for (let i = 0; i < polyPoints.length; i++) {
+                const p1 = polyPoints[i];
+                const p2 = polyPoints[(i + 1) % polyPoints.length];
+                const edge = { x: p2.x - p1.x, y: p2.y - p1.y };
+                axes.push({ x: -edge.y, y: edge.x });
+            }
+            
+            axes.push({ x: 1, y: 0 });
+            axes.push({ x: 0, y: 1 });
+            
+            for (let axis of axes) {
+                const len = Math.sqrt(axis.x * axis.x + axis.y * axis.y);
+                if (len === 0) continue;
+                axis.x /= len;
+                axis.y /= len;
+                
+                let polyMin = Infinity, polyMax = -Infinity;
+                for (let p of polyPoints) {
+                    const projection = p.x * axis.x + p.y * axis.y;
+                    polyMin = Math.min(polyMin, projection);
+                    polyMax = Math.max(polyMax, projection);
+                }
+                
+                let rectMin = Infinity, rectMax = -Infinity;
+                for (let p of rectPoints) {
+                    const projection = p.x * axis.x + p.y * axis.y;
+                    rectMin = Math.min(rectMin, projection);
+                    rectMax = Math.max(rectMax, projection);
+                }
+                
+                if (polyMax < rectMin || rectMax < polyMin) {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
         function showMenu(isGameOver = false) {
             gameState = isGameOver ? 'gameOver' : 'menu';
             
@@ -553,14 +805,12 @@
             mainMenuSection.style.display = 'block';
         }
         
-        // Скрыть меню и начать игру
         function hideMenuAndPlay() {
             menuDiv.style.display = 'none';
             gameState = 'playing';
             restart();
         }
         
-        // Инициализация
         function init() {
             loadProgress();
             totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
@@ -569,14 +819,12 @@
                 totalCoinsDisplay.classList.add('visible');
             }
             
-            // Если обучение пройдено и уже играли - показываем меню
             if (progressFlags.hasPlayedFirstGame) {
                 showMenu(false);
                 gameActive = false;
             }
         }
         
-        // Создание трубы
         function createPipe() {
             const minGapY = 100;
             const maxGapY = canvas.height - PIPE_GAP - 100;
@@ -598,7 +846,6 @@
             }
         }
         
-        // Обновление счёта
         function updateScore() {
             for (let pipe of pipes) {
                 if (!pipe.passed && pipe.x + PIPE_WIDTH < bird.x) {
@@ -621,16 +868,16 @@
             }
         }
         
-        // Сбор монет
         function collectCoins() {
             const magnetRadius = getMagnetRadius();
             const magnetSpeed = getMagnetSpeed();
+            const center = getBirdCenter();
             
             for (let coin of coins) {
                 if (coin.collected) continue;
                 
-                const dx = coin.x - (bird.x + bird.width / 2);
-                const dy = coin.y - (bird.y + bird.height / 2);
+                const dx = coin.x - center.x;
+                const dy = coin.y - center.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
                 if (shopPurchases.hasMagnet && distance < magnetRadius) {
@@ -655,50 +902,51 @@
             }
         }
         
-        // Проверка столкновений
         function checkCollision() {
             if (!progressFlags.hasPipesEnabled) return false;
             
-            // Проверка границ
-            if (bird.y < 0 || bird.y + bird.height > canvas.height) {
-                if (shopPurchases.hasShield) {
-                    shopPurchases.hasShield = false;
-                    saveShop();
-                    bird.y = Math.max(0, Math.min(bird.y, canvas.height - bird.height));
-                    bird.velocity = 0;
-                    return false;
+            const hitboxPoints = getBirdHitboxPoints();
+            
+            for (let p of hitboxPoints) {
+                if (p.y < 0 || p.y > canvas.height) {
+                    if (shopPurchases.hasShield) {
+                        shopPurchases.hasShield = false;
+                        saveShop();
+                        bird.y = Math.max(0, Math.min(bird.y, canvas.height - bird.height));
+                        bird.velocity = 0;
+                        return false;
+                    }
+                    return true;
                 }
-                return true;
             }
             
-            // Проверка столкновений с трубами
             for (let i = pipes.length - 1; i >= 0; i--) {
                 let pipe = pipes[i];
                 
-                if (bird.x + bird.width > pipe.x && 
-                    bird.x < pipe.x + PIPE_WIDTH) {
-                    if (bird.y < pipe.gapY || 
-                        bird.y + bird.height > pipe.gapY + PIPE_GAP) {
-                        
-                        // Если есть щит - уничтожаем трубу
-                        if (shopPurchases.hasShield) {
-                            shopPurchases.hasShield = false;
-                            saveShop();
-                            
-                            // Удаляем трубу из массива
-                            pipes.splice(i, 1);
-                            
-                            return false;
-                        }
-                        return true;
+                if (polygonRectCollision(hitboxPoints, pipe.x, 0, PIPE_WIDTH, pipe.gapY)) {
+                    if (shopPurchases.hasShield) {
+                        shopPurchases.hasShield = false;
+                        saveShop();
+                        pipes.splice(i, 1);
+                        return false;
                     }
+                    return true;
+                }
+                
+                if (polygonRectCollision(hitboxPoints, pipe.x, pipe.gapY + PIPE_GAP, PIPE_WIDTH, canvas.height - pipe.gapY - PIPE_GAP)) {
+                    if (shopPurchases.hasShield) {
+                        shopPurchases.hasShield = false;
+                        saveShop();
+                        pipes.splice(i, 1);
+                        return false;
+                    }
+                    return true;
                 }
             }
             
             return false;
         }
         
-        // Прыжок
         function jump() {
             if (!progressFlags.hasBirdCreated) {
                 progressFlags.hasBirdCreated = true;
@@ -738,17 +986,12 @@
             bird.velocity = JUMP_STRENGTH;
         }
         
-        // Перезапуск игры
         function restart() {
             coinsThisRun = 0;
             
             if (!progressFlags.hasBirdCreated) {
                 birdAppearing = false;
                 birdOpacity = 0;
-            } else if (!birdAppearing) {
-                birdAppearing = false;
-                birdOpacity = 0;
-                birdAppearing = false;
             }
             
             if (progressFlags.hasBirdCreated && progressFlags.hasMovedLeft) {
@@ -759,6 +1002,8 @@
             
             bird.y = 300 - 15;
             bird.velocity = 0;
+            bird.rotation = 0;
+            bird.targetRotation = 0;
             bird.isMovingLeft = false;
             pipes = [];
             coins = [];
@@ -785,7 +1030,100 @@
             startGameLoop();
         }
         
-        // Основной игровой цикл
+        function drawBird() {
+            if (!progressFlags.hasBirdCreated) return;
+            
+            const colors = getColors();
+            
+            ctx.save();
+            ctx.globalAlpha = birdOpacity;
+            
+            const cx = bird.x + bird.width / 2;
+            const cy = bird.y + bird.height / 2;
+            
+            ctx.translate(cx, cy);
+            ctx.rotate(bird.rotation);
+            
+            if (shopPurchases.hasShield) {
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = colors.shieldColor;
+                ctx.strokeStyle = colors.shieldColor;
+                ctx.lineWidth = 3;
+                
+                if (shopPurchases.currentSkin === 'square') {
+                    ctx.strokeRect(-bird.width / 2 - 2, -bird.height / 2 - 2, bird.width + 4, bird.height + 4);
+                } else if (shopPurchases.currentSkin === 'triangle') {
+                    ctx.beginPath();
+                    ctx.moveTo(bird.width / 2, 0);
+                    ctx.lineTo(-bird.width / 2, -bird.height / 2);
+                    ctx.lineTo(-bird.width / 2, bird.height / 2);
+                    ctx.closePath();
+                    ctx.stroke();
+                }
+                ctx.shadowBlur = 0;
+            }
+            
+            ctx.fillStyle = colors.foreground;
+            
+            if (shopPurchases.currentSkin === 'square') {
+                ctx.fillRect(-bird.width / 2, -bird.height / 2, bird.width, bird.height);
+            } else if (shopPurchases.currentSkin === 'triangle') {
+                ctx.beginPath();
+                ctx.moveTo(bird.width / 2, 0);
+                ctx.lineTo(-bird.width / 2, -bird.height / 2);
+                ctx.lineTo(-bird.width / 2, bird.height / 2);
+                ctx.closePath();
+                ctx.fill();
+            }
+            
+            ctx.restore();
+        }
+        
+        function drawDebugHitbox() {
+            if (!debugMode || !progressFlags.hasBirdCreated) return;
+            
+            const colors = getColors();
+            const hitboxPoints = getBirdHitboxPoints();
+            
+            ctx.strokeStyle = colors.debugHitbox;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            for (let i = 0; i < hitboxPoints.length; i++) {
+                const p = hitboxPoints[i];
+                if (i === 0) {
+                    ctx.moveTo(p.x, p.y);
+                } else {
+                    ctx.lineTo(p.x, p.y);
+                }
+            }
+            ctx.closePath();
+            ctx.stroke();
+            
+            ctx.fillStyle = colors.debugPoints;
+            for (let p of hitboxPoints) {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            const center = getBirdCenter();
+            ctx.fillStyle = colors.debugCenter;
+            ctx.beginPath();
+            ctx.arc(center.x, center.y, 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            if (shopPurchases.hasMagnet) {
+                ctx.strokeStyle = colors.magnetColor;
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.arc(center.x, center.y, getMagnetRadius(), 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+        
         function gameLoop() {
             if (!gameActive) {
                 if (animationFrameId) {
@@ -795,10 +1133,11 @@
                 return;
             }
             
-            ctx.fillStyle = 'black';
+            const colors = getColors();
+            
+            ctx.fillStyle = colors.background;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Логика движения птички
             if (bird.isMovingLeft && !progressFlags.hasMovedLeft) {
                 if (bird.x > bird.targetX) {
                     bird.x -= MOVE_SPEED;
@@ -823,7 +1162,24 @@
                 bird.y += bird.velocity;
             }
             
-            // Анимация появления птички
+            if (shopPurchases.currentAnimation === 'rotation' && progressFlags.hasActivatedGravity) {
+                if (bird.velocity < -2) {
+                    bird.targetRotation = -Math.PI / 4;
+                } else if (bird.velocity > 2) {
+                    bird.targetRotation = Math.PI / 4;
+                } else {
+                    bird.targetRotation = 0;
+                }
+                
+                const rotationSpeed = 0.1;
+                if (Math.abs(bird.targetRotation - bird.rotation) > 0.01) {
+                    bird.rotation += (bird.targetRotation - bird.rotation) * rotationSpeed;
+                }
+            } else {
+                bird.rotation = 0;
+                bird.targetRotation = 0;
+            }
+            
             if (birdAppearing) {
                 birdOpacity += 0.02;
                 if (birdOpacity >= 1) {
@@ -834,44 +1190,25 @@
                 birdOpacity = 1;
             }
             
-            // Визуализация магнита (радиус)
-            if (shopPurchases.hasMagnet && progressFlags.hasBirdCreated) {
+            if (shopPurchases.hasMagnet && progressFlags.hasBirdCreated && !debugMode) {
                 const magnetRadius = getMagnetRadius();
+                const center = getBirdCenter();
                 ctx.globalAlpha = 0.15;
-                ctx.fillStyle = 'cyan';
+                ctx.fillStyle = colors.magnetColor;
                 ctx.beginPath();
-                ctx.arc(bird.x + bird.width / 2, bird.y + bird.height / 2, magnetRadius, 0, Math.PI * 2);
+                ctx.arc(center.x, center.y, magnetRadius, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.globalAlpha = 1.0;
             }
             
-            // Рисуем птичку
-            if (progressFlags.hasBirdCreated) {
-                ctx.globalAlpha = birdOpacity;
-                
-                // Щит (светящаяся рамка)
-                if (shopPurchases.hasShield) {
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = 'cyan';
-                    ctx.strokeStyle = 'cyan';
-                    ctx.lineWidth = 3;
-                    ctx.strokeRect(bird.x - 2, bird.y - 2, bird.width + 4, bird.height + 4);
-                    ctx.shadowBlur = 0;
-                }
-                
-                ctx.fillStyle = 'white';
-                ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
-                ctx.globalAlpha = 1.0;
-            }
+            drawBird();
             
             frameCount++;
             
-            // Создание труб
             if (progressFlags.hasPipesEnabled && frameCount % PIPE_SPAWN_INTERVAL === 0) {
                 createPipe();
             }
             
-            // Обновление и отрисовка труб
             for (let i = pipes.length - 1; i >= 0; i--) {
                 let pipe = pipes[i];
                 pipe.x -= PIPE_SPEED;
@@ -881,12 +1218,18 @@
                     continue;
                 }
                 
-                ctx.fillStyle = 'white';
+                ctx.fillStyle = colors.foreground;
                 ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.gapY);
                 ctx.fillRect(pipe.x, pipe.gapY + PIPE_GAP, PIPE_WIDTH, canvas.height - pipe.gapY - PIPE_GAP);
+                
+                if (debugMode) {
+                    ctx.strokeStyle = colors.debugHitbox;
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(pipe.x, 0, PIPE_WIDTH, pipe.gapY);
+                    ctx.strokeRect(pipe.x, pipe.gapY + PIPE_GAP, PIPE_WIDTH, canvas.height - pipe.gapY - PIPE_GAP);
+                }
             }
             
-            // Обновление и отрисовка монет
             for (let i = coins.length - 1; i >= 0; i--) {
                 let coin = coins[i];
                 
@@ -902,23 +1245,28 @@
                     continue;
                 }
                 
-                ctx.fillStyle = 'white';
+                ctx.fillStyle = colors.foreground;
                 ctx.beginPath();
                 ctx.arc(coin.x, coin.y, coin.radius, 0, Math.PI * 2);
                 ctx.fill();
+                
+                if (debugMode) {
+                    ctx.strokeStyle = colors.debugPoints;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
             }
             
-            // Сбор монет
+            drawDebugHitbox();
+            
             if (progressFlags.hasCoinsEnabled) {
                 collectCoins();
             }
             
-            // Обновление счёта
             if (progressFlags.hasPipesEnabled) {
                 updateScore();
             }
             
-            // Проверка столкновений
             if (checkCollision()) {
                 gameActive = false;
                 if (animationFrameId) {
@@ -926,7 +1274,6 @@
                     animationFrameId = null;
                 }
                 
-                // Отмечаем что сыграли первую игру
                 if (!progressFlags.hasPlayedFirstGame) {
                     progressFlags.hasPlayedFirstGame = true;
                     saveProgress();
@@ -959,8 +1306,122 @@
         
         // === МАГАЗИН ===
         
+        function renderSkinSelection() {
+            const skinGrid = document.getElementById('skinGrid');
+            skinGrid.innerHTML = '';
+            
+            const skinData = {
+                'square': { icon: '⬜', name: 'Квадрат' },
+                'triangle': { icon: '🔺', name: 'Треугольник' }
+            };
+            
+            for (let skin of shopPurchases.ownedSkins) {
+                const item = document.createElement('div');
+                item.className = 'selection-item';
+                if (shopPurchases.currentSkin === skin) {
+                    item.classList.add('selected');
+                }
+                item.setAttribute('data-skin', skin);
+                
+                const icon = document.createElement('div');
+                icon.className = 'selection-icon';
+                icon.textContent = skinData[skin].icon;
+                
+                const name = document.createElement('div');
+                name.className = 'selection-name';
+                name.textContent = skinData[skin].name;
+                
+                item.appendChild(icon);
+                item.appendChild(name);
+                skinGrid.appendChild(item);
+                
+                item.addEventListener('click', () => {
+                    shopPurchases.currentSkin = skin;
+                    saveShop();
+                    renderSkinSelection();
+                });
+            }
+        }
+        
+        function renderAnimationSelection() {
+            const animGrid = document.getElementById('animationGrid');
+            animGrid.innerHTML = '';
+            
+            const animations = [
+                { key: 'none', icon: '⭕', name: 'Нет' }
+            ];
+            
+            if (shopPurchases.animations.rotation) {
+                animations.push({ key: 'rotation', icon: '🔄', name: 'Поворот' });
+            }
+            
+            for (let anim of animations) {
+                const item = document.createElement('div');
+                item.className = 'selection-item';
+                if (shopPurchases.currentAnimation === anim.key) {
+                    item.classList.add('selected');
+                }
+                item.setAttribute('data-animation', anim.key);
+                
+                const icon = document.createElement('div');
+                icon.className = 'selection-icon';
+                icon.textContent = anim.icon;
+                
+                const name = document.createElement('div');
+                name.className = 'selection-name';
+                name.textContent = anim.name;
+                
+                item.appendChild(icon);
+                item.appendChild(name);
+                animGrid.appendChild(item);
+                
+                item.addEventListener('click', () => {
+                    shopPurchases.currentAnimation = anim.key;
+                    saveShop();
+                    renderAnimationSelection();
+                });
+            }
+        }
+        
+        function renderColorModeSelection() {
+            const colorGrid = document.getElementById('colorModeGrid');
+            colorGrid.innerHTML = '';
+            
+            const modes = [
+                { key: 'normal', icon: '⚫', name: 'Обычный' },
+                { key: 'inverted', icon: '⚪', name: 'Инверсия' }
+            ];
+            
+            for (let mode of modes) {
+                const item = document.createElement('div');
+                item.className = 'selection-item';
+                if (shopPurchases.currentColorMode === mode.key) {
+                    item.classList.add('selected');
+                }
+                item.setAttribute('data-colormode', mode.key);
+                
+                const icon = document.createElement('div');
+                icon.className = 'selection-icon';
+                icon.textContent = mode.icon;
+                
+                const name = document.createElement('div');
+                name.className = 'selection-name';
+                name.textContent = mode.name;
+                
+                item.appendChild(icon);
+                item.appendChild(name);
+                colorGrid.appendChild(item);
+                
+                item.addEventListener('click', () => {
+                    shopPurchases.currentColorMode = mode.key;
+                    saveShop();
+                    renderColorModeSelection();
+                });
+            }
+        }
+        
         function updateShopUI() {
-            // Обновление статуса щита
+            // Щит
             const shieldStatus = document.getElementById('shieldStatus');
             const buyShieldBtn = document.getElementById('buyShield');
             
@@ -974,7 +1435,7 @@
                 buyShieldBtn.textContent = totalCoins < 10 ? 'Недостаточно монет' : 'Купить';
             }
             
-            // Обновление статуса магнита
+            // Магнит
             const magnetStatus = document.getElementById('magnetStatus');
             const buyMagnetBtn = document.getElementById('buyMagnet');
             const magnetUpgrades = document.getElementById('magnetUpgrades');
@@ -984,7 +1445,6 @@
                 buyMagnetBtn.style.display = 'none';
                 magnetUpgrades.style.display = 'block';
                 
-                // Обновление улучшений радиуса
                 const radiusLevel = document.getElementById('radiusLevel');
                 const upgradeRadiusBtn = document.getElementById('upgradeRadius');
                 const radiusLvl = shopPurchases.magnetRadiusLevel;
@@ -1001,7 +1461,6 @@
                     upgradeRadiusBtn.textContent = totalCoins < price ? `${price} 🪙 (мало)` : `${price} 🪙`;
                 }
                 
-                // Обновление улучшений скорости
                 const speedLevel = document.getElementById('speedLevel');
                 const upgradeSpeedBtn = document.getElementById('upgradeSpeed');
                 const speedLvl = shopPurchases.magnetSpeedLevel;
@@ -1024,6 +1483,58 @@
                 buyMagnetBtn.textContent = totalCoins < 20 ? 'Недостаточно монет' : 'Купить';
                 magnetUpgrades.style.display = 'none';
             }
+            
+            // Анимация
+            const animationStatus = document.getElementById('animationStatus');
+            const buyAnimationBtn = document.getElementById('buyAnimation');
+            const animationSelection = document.getElementById('animationSelection');
+            
+            if (shopPurchases.animations.rotation) {
+                animationStatus.innerHTML = '<span class="owned-indicator">✓ Куплена</span>';
+                buyAnimationBtn.style.display = 'none';
+                animationSelection.style.display = 'block';
+                renderAnimationSelection();
+            } else {
+                animationStatus.textContent = 'Не куплена';
+                buyAnimationBtn.style.display = 'block';
+                buyAnimationBtn.disabled = totalCoins < 15;
+                buyAnimationBtn.textContent = totalCoins < 15 ? 'Недостаточно монет' : 'Купить';
+                animationSelection.style.display = 'none';
+            }
+            
+            // Инверсия цвета
+            const colorInversionStatus = document.getElementById('colorInversionStatus');
+            const buyColorInversionBtn = document.getElementById('buyColorInversion');
+            const colorModeSelection = document.getElementById('colorModeSelection');
+            
+            if (shopPurchases.hasColorInversion) {
+                colorInversionStatus.innerHTML = '<span class="owned-indicator">✓ Куплена</span>';
+                buyColorInversionBtn.style.display = 'none';
+                colorModeSelection.style.display = 'block';
+                renderColorModeSelection();
+            } else {
+                colorInversionStatus.textContent = 'Не куплена';
+                buyColorInversionBtn.style.display = 'block';
+                buyColorInversionBtn.disabled = totalCoins < 5;
+                buyColorInversionBtn.textContent = totalCoins < 5 ? 'Недостаточно монет' : 'Купить';
+                colorModeSelection.style.display = 'none';
+            }
+            
+            // Треугольник
+            const triangleStatus = document.getElementById('triangleSkinStatus');
+            const buyTriangleBtn = document.getElementById('buyTriangleSkin');
+            
+            if (shopPurchases.ownedSkins.includes('triangle')) {
+                triangleStatus.innerHTML = '<span class="owned-indicator">✓ Куплен</span>';
+                buyTriangleBtn.style.display = 'none';
+            } else {
+                triangleStatus.textContent = 'Не куплен';
+                buyTriangleBtn.style.display = 'block';
+                buyTriangleBtn.disabled = totalCoins < 5;
+                buyTriangleBtn.textContent = totalCoins < 5 ? 'Недостаточно монет' : 'Купить';
+            }
+            
+            renderSkinSelection();
         }
         
         function buyShield() {
@@ -1076,34 +1587,69 @@
             }
         }
         
+        function buyAnimation() {
+            if (totalCoins >= 15 && !shopPurchases.animations.rotation) {
+                totalCoins -= 15;
+                shopPurchases.animations.rotation = true;
+                shopPurchases.currentAnimation = 'rotation';
+                localStorage.setItem('totalCoins', totalCoins);
+                totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
+                saveShop();
+                updateShopUI();
+            }
+        }
+        
+        function buyColorInversion() {
+            if (totalCoins >= 5 && !shopPurchases.hasColorInversion) {
+                totalCoins -= 5;
+                shopPurchases.hasColorInversion = true;
+                localStorage.setItem('totalCoins', totalCoins);
+                totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
+                saveShop();
+                updateShopUI();
+            }
+        }
+        
+        function buyTriangleSkin() {
+            if (totalCoins >= 5 && !shopPurchases.ownedSkins.includes('triangle')) {
+                totalCoins -= 5;
+                shopPurchases.ownedSkins.push('triangle');
+                localStorage.setItem('totalCoins', totalCoins);
+                totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
+                saveShop();
+                updateShopUI();
+            }
+        }
+        
         // === СОБЫТИЯ ===
         
-        // Кнопка "Играть"
-        playButton.addEventListener('click', () => {
-            hideMenuAndPlay();
-        });
+        playButton.addEventListener('click', hideMenuAndPlay);
         
-        // Кнопка "Магазин"
         shopButton.addEventListener('click', () => {
             shopDiv.style.display = 'block';
             mainMenuSection.style.display = 'none';
             updateShopUI();
         });
         
-        // Кнопка "Назад" в магазине
         backToMenuButton.addEventListener('click', () => {
             shopDiv.style.display = 'none';
             mainMenuSection.style.display = 'block';
         });
         
-        // Покупки в магазине
         document.getElementById('buyShield').addEventListener('click', buyShield);
         document.getElementById('buyMagnet').addEventListener('click', buyMagnet);
         document.getElementById('upgradeRadius').addEventListener('click', upgradeRadius);
         document.getElementById('upgradeSpeed').addEventListener('click', upgradeSpeed);
+        document.getElementById('buyAnimation').addEventListener('click', buyAnimation);
+        document.getElementById('buyColorInversion').addEventListener('click', buyColorInversion);
+        document.getElementById('buyTriangleSkin').addEventListener('click', buyTriangleSkin);
         
-        // Управление игрой
         document.addEventListener('keydown', (e) => {
+            if (e.code === 'KeyG') {
+                debugMode = !debugMode;
+                console.log('Debug mode:', debugMode);
+            }
+            
             if (e.code === 'Space') {
                 e.preventDefault();
                 if (gameState === 'playing' && gameActive) {
@@ -1138,14 +1684,10 @@
             }
         }, { passive: false });
         
-        resetButton.addEventListener('click', () => {
-            resetProgress();
-        });
+        resetButton.addEventListener('click', resetProgress);
         
-        // Запуск
         init();
         
-        // Запускаем игру только если меню не показано
         if (gameState === 'playing') {
             startGameLoop();
         }
