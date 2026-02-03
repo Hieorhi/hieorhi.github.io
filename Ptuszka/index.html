@@ -9,7 +9,7 @@
     <meta name="keywords" content="ptuška, ptuszka, птушка">
     <meta name="author" content="Hieorhi">
 
-    <meta property="og:site_name" content="Hieorhi Games">
+    <meta property="og:site_name" content="Ptuška by Hieorhi">
     <meta property="og:locale" content="be_BY">
     <meta property="og:title" content="Ptuška">
     <meta property="og:description" content="Prostaja hulnia">
@@ -481,109 +481,98 @@
     </div>
 
     <script>
+        // ========================================
+        // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+        // ========================================
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const menuDiv = document.getElementById('menu');
-        const menuTitle = document.getElementById('menuTitle');
-        const statsSection = document.getElementById('statsSection');
-        const mainMenuSection = document.getElementById('mainMenuSection');
-        const scoreDiv = document.getElementById('score');
-        const finalScoreDiv = document.getElementById('finalScore');
-        const bestScoreDiv = document.getElementById('bestScore');
-        const coinsThisRunDiv = document.getElementById('coinsThisRun');
-        const totalCoinsDisplay = document.getElementById('totalCoinsDisplay');
-        const resetButton = document.getElementById('resetButton');
-        
-        const playButton = document.getElementById('playButton');
-        const shopButton = document.getElementById('shopButton');
-        const shopDiv = document.getElementById('shop');
-        const backToMenuButton = document.getElementById('backToMenu');
-        
-        const GRAVITY = 0.5;
-        const JUMP_STRENGTH = -8;
-        const PIPE_SPEED = 3;
-        const PIPE_WIDTH = 60;
-        const PIPE_GAP = 180;
-        const PIPE_SPAWN_INTERVAL = 90;
-        const MOVE_SPEED = 2;
-        
         let debugMode = false;
+        let animationFrameId = null;
         
-        let progressFlags = {
-            hasBirdCreated: false,
-            hasMovedLeft: false,
-            hasActivatedJumps: false,
-            hasActivatedGravity: false,
-            hasPipesEnabled: false,
-            hasCoinsEnabled: false,
-            hasSeenScore: false,
-            hasSeenCoins: false,
-            hasPlayedFirstGame: false
-        };
-        
-        let shopPurchases = {
-            hasShield: false,
-            hasMagnet: false,
-            magnetRadiusLevel: 0,
-            magnetSpeedLevel: 0,
-            animations: {
-                rotation: false
-            },
-            currentAnimation: 'none',
-            hasColorInversion: false,
-            currentColorMode: 'normal',
-            ownedSkins: ['square'],
-            currentSkin: 'square'
-        };
-        
-        let gameState = 'playing';
-        let jumpCount = 0;
-        
-        function loadProgress() {
-            const saved = localStorage.getItem('progressFlags');
-            if (saved) {
-                progressFlags = JSON.parse(saved);
-            }
+        // ========================================
+        // CONFIG - Константы игры
+        // ========================================
+        const Config = {
+            GRAVITY: 0.5,
+            JUMP_STRENGTH: -8,
+            PIPE_SPEED: 3,
+            PIPE_WIDTH: 60,
+            PIPE_GAP: 180,
+            PIPE_SPAWN_INTERVAL: 90,
+            MOVE_SPEED: 2,
             
-            const savedShop = localStorage.getItem('shopPurchases');
-            if (savedShop) {
-                const parsed = JSON.parse(savedShop);
-                shopPurchases = {
-                    hasShield: parsed.hasShield || false,
-                    hasMagnet: parsed.hasMagnet || false,
-                    magnetRadiusLevel: parsed.magnetRadiusLevel || 0,
-                    magnetSpeedLevel: parsed.magnetSpeedLevel || 0,
-                    animations: parsed.animations || { rotation: false },
-                    currentAnimation: parsed.currentAnimation || 'none',
-                    hasColorInversion: parsed.hasColorInversion || false,
-                    currentColorMode: parsed.currentColorMode || 'normal',
-                    ownedSkins: parsed.ownedSkins || ['square'],
-                    currentSkin: parsed.currentSkin || 'square'
-                };
+            MAGNET_BASE_RADIUS: 60,
+            MAGNET_RADIUS_INCREMENT: 30,
+            MAGNET_BASE_SPEED: 3,
+            MAGNET_SPEED_INCREMENT: 2
+        };
+        
+        // ========================================
+        // STORAGE - Работа с localStorage
+        // ========================================
+        const Storage = {
+            loadProgress() {
+                const saved = localStorage.getItem('progressFlags');
+                if (saved) {
+                    return JSON.parse(saved);
+                }
+                return null;
+            },
+            
+            saveProgress(progressFlags) {
+                localStorage.setItem('progressFlags', JSON.stringify(progressFlags));
+            },
+            
+            loadShop() {
+                const saved = localStorage.getItem('shopPurchases');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    return {
+                        hasShield: parsed.hasShield || false,
+                        hasMagnet: parsed.hasMagnet || false,
+                        magnetRadiusLevel: parsed.magnetRadiusLevel || 0,
+                        magnetSpeedLevel: parsed.magnetSpeedLevel || 0,
+                        animations: parsed.animations || { rotation: false },
+                        currentAnimation: parsed.currentAnimation || 'none',
+                        hasColorInversion: parsed.hasColorInversion || false,
+                        currentColorMode: parsed.currentColorMode || 'normal',
+                        ownedSkins: parsed.ownedSkins || ['square'],
+                        currentSkin: parsed.currentSkin || 'square'
+                    };
+                }
+                return null;
+            },
+            
+            saveShop(shopPurchases) {
+                localStorage.setItem('shopPurchases', JSON.stringify(shopPurchases));
+            },
+            
+            loadBestScore() {
+                return parseInt(localStorage.getItem('bestScore')) || 0;
+            },
+            
+            saveBestScore(score) {
+                localStorage.setItem('bestScore', score);
+            },
+            
+            loadTotalCoins() {
+                return parseInt(localStorage.getItem('totalCoins')) || 0;
+            },
+            
+            saveTotalCoins(coins) {
+                localStorage.setItem('totalCoins', coins);
+            },
+            
+            clearAll() {
+                localStorage.clear();
             }
-        }
+        };
         
-        function saveProgress() {
-            localStorage.setItem('progressFlags', JSON.stringify(progressFlags));
-        }
-        
-        function saveShop() {
-            localStorage.setItem('shopPurchases', JSON.stringify(shopPurchases));
-        }
-        
-        function resetProgress() {
-            progressFlags = {
-                hasBirdCreated: false,
-                hasMovedLeft: false,
-                hasActivatedJumps: false,
-                hasActivatedGravity: false,
-                hasPipesEnabled: false,
-                hasCoinsEnabled: false,
-                hasSeenScore: false,
-                hasSeenCoins: false,
-                hasPlayedFirstGame: false
-            };
-            shopPurchases = {
+        // ========================================
+        // SHOP - Магазин и покупки
+        // ========================================
+        const Shop = {
+            purchases: {
                 hasShield: false,
                 hasMagnet: false,
                 magnetRadiusLevel: 0,
@@ -594,1102 +583,1257 @@
                 currentColorMode: 'normal',
                 ownedSkins: ['square'],
                 currentSkin: 'square'
-            };
-            jumpCount = 0;
-            bestScore = 0;
-            totalCoins = 0;
-            coinsThisRun = 0;
-            localStorage.clear();
-            saveProgress();
-            saveShop();
-            restart();
-        }
-        
-        // Цвета в зависимости от режима
-        function getColors() {
-            if (shopPurchases.currentColorMode === 'inverted') {
-                return {
-                    background: 'white',
-                    foreground: 'black',
-                    shieldColor: 'purple',
-                    magnetColor: 'blue',
-                    debugHitbox: 'lime',
-                    debugPoints: 'orange',
-                    debugCenter: 'red'
+            },
+            
+            init() {
+                const saved = Storage.loadShop();
+                if (saved) {
+                    this.purchases = saved;
+                }
+            },
+            
+            save() {
+                Storage.saveShop(this.purchases);
+            },
+            
+            reset() {
+                this.purchases = {
+                    hasShield: false,
+                    hasMagnet: false,
+                    magnetRadiusLevel: 0,
+                    magnetSpeedLevel: 0,
+                    animations: { rotation: false },
+                    currentAnimation: 'none',
+                    hasColorInversion: false,
+                    currentColorMode: 'normal',
+                    ownedSkins: ['square'],
+                    currentSkin: 'square'
                 };
-            } else {
-                return {
-                    background: 'black',
-                    foreground: 'white',
-                    shieldColor: 'cyan',
-                    magnetColor: 'cyan',
-                    debugHitbox: 'red',
-                    debugPoints: 'yellow',
-                    debugCenter: 'lime'
-                };
+                this.save();
+            },
+            
+            getMagnetRadius() {
+                if (!this.purchases.hasMagnet) return 0;
+                return Config.MAGNET_BASE_RADIUS + (this.purchases.magnetRadiusLevel * Config.MAGNET_RADIUS_INCREMENT);
+            },
+            
+            getMagnetSpeed() {
+                if (!this.purchases.hasMagnet) return 0;
+                return Config.MAGNET_BASE_SPEED + (this.purchases.magnetSpeedLevel * Config.MAGNET_SPEED_INCREMENT);
+            },
+            
+            getColors() {
+                if (this.purchases.currentColorMode === 'inverted') {
+                    return {
+                        background: 'white',
+                        foreground: 'black',
+                        shieldColor: 'purple',
+                        magnetColor: 'blue',
+                        debugHitbox: 'lime',
+                        debugPoints: 'orange',
+                        debugCenter: 'red'
+                    };
+                } else {
+                    return {
+                        background: 'black',
+                        foreground: 'white',
+                        shieldColor: 'cyan',
+                        magnetColor: 'cyan',
+                        debugHitbox: 'red',
+                        debugPoints: 'yellow',
+                        debugCenter: 'lime'
+                    };
+                }
+            },
+            
+            buyShield() {
+                if (GameState.totalCoins >= 10 && !this.purchases.hasShield) {
+                    GameState.totalCoins -= 10;
+                    this.purchases.hasShield = true;
+                    Storage.saveTotalCoins(GameState.totalCoins);
+                    GameState.updateCoinsDisplay();
+                    this.save();
+                    return true;
+                }
+                return false;
+            },
+            
+            buyMagnet() {
+                if (GameState.totalCoins >= 20 && !this.purchases.hasMagnet) {
+                    GameState.totalCoins -= 20;
+                    this.purchases.hasMagnet = true;
+                    Storage.saveTotalCoins(GameState.totalCoins);
+                    GameState.updateCoinsDisplay();
+                    this.save();
+                    return true;
+                }
+                return false;
+            },
+            
+            upgradeRadius() {
+                const prices = [5, 10, 15];
+                const currentLevel = this.purchases.magnetRadiusLevel;
+                
+                if (currentLevel < 3 && GameState.totalCoins >= prices[currentLevel]) {
+                    GameState.totalCoins -= prices[currentLevel];
+                    this.purchases.magnetRadiusLevel++;
+                    Storage.saveTotalCoins(GameState.totalCoins);
+                    GameState.updateCoinsDisplay();
+                    this.save();
+                    return true;
+                }
+                return false;
+            },
+            
+            upgradeSpeed() {
+                const prices = [5, 10, 15];
+                const currentLevel = this.purchases.magnetSpeedLevel;
+                
+                if (currentLevel < 3 && GameState.totalCoins >= prices[currentLevel]) {
+                    GameState.totalCoins -= prices[currentLevel];
+                    this.purchases.magnetSpeedLevel++;
+                    Storage.saveTotalCoins(GameState.totalCoins);
+                    GameState.updateCoinsDisplay();
+                    this.save();
+                    return true;
+                }
+                return false;
+            },
+            
+            buyAnimation() {
+                if (GameState.totalCoins >= 15 && !this.purchases.animations.rotation) {
+                    GameState.totalCoins -= 15;
+                    this.purchases.animations.rotation = true;
+                    this.purchases.currentAnimation = 'rotation';
+                    Storage.saveTotalCoins(GameState.totalCoins);
+                    GameState.updateCoinsDisplay();
+                    this.save();
+                    return true;
+                }
+                return false;
+            },
+            
+            buyColorInversion() {
+                if (GameState.totalCoins >= 5 && !this.purchases.hasColorInversion) {
+                    GameState.totalCoins -= 5;
+                    this.purchases.hasColorInversion = true;
+                    Storage.saveTotalCoins(GameState.totalCoins);
+                    GameState.updateCoinsDisplay();
+                    this.save();
+                    return true;
+                }
+                return false;
+            },
+            
+            buyTriangleSkin() {
+                if (GameState.totalCoins >= 5 && !this.purchases.ownedSkins.includes('triangle')) {
+                    GameState.totalCoins -= 5;
+                    this.purchases.ownedSkins.push('triangle');
+                    Storage.saveTotalCoins(GameState.totalCoins);
+                    GameState.updateCoinsDisplay();
+                    this.save();
+                    return true;
+                }
+                return false;
             }
-        }
-        
-        let bird = {
-            x: 200 - 15,
-            y: 300 - 15,
-            targetX: 80,
-            width: 30,
-            height: 30,
-            velocity: 0,
-            isMovingLeft: false,
-            rotation: 0,
-            targetRotation: 0
         };
         
-        let pipes = [];
-        let coins = [];
-        let frameCount = 0;
-        let score = 0;
-        let bestScore = parseInt(localStorage.getItem('bestScore')) || 0;
-        let totalCoins = parseInt(localStorage.getItem('totalCoins')) || 0;
-        let coinsThisRun = 0;
-        let gameActive = true;
-        let animationFrameId = null;
-        
-        let birdAppearing = false;
-        let birdOpacity = 0;
-        let passedPipes = new Set();
-        let scoreVisible = false;
-        
-        const MAGNET_BASE_RADIUS = 60;
-        const MAGNET_RADIUS_INCREMENT = 30;
-        const MAGNET_BASE_SPEED = 3;
-        const MAGNET_SPEED_INCREMENT = 2;
-        
-        function getMagnetRadius() {
-            if (!shopPurchases.hasMagnet) return 0;
-            return MAGNET_BASE_RADIUS + (shopPurchases.magnetRadiusLevel * MAGNET_RADIUS_INCREMENT);
-        }
-        
-        function getMagnetSpeed() {
-            if (!shopPurchases.hasMagnet) return 0;
-            return MAGNET_BASE_SPEED + (shopPurchases.magnetSpeedLevel * MAGNET_SPEED_INCREMENT);
-        }
-        
-        // Получение смещения центра масс для разных скинов
-        function getCenterOffset() {
-            if (shopPurchases.currentSkin === 'square') {
+        // ========================================
+        // PHYSICS - Физика и коллизии
+        // ========================================
+        const Physics = {
+            getCenterOffset(skin, width, height) {
+                if (skin === 'square') {
+                    return { x: 0, y: 0 };
+                } else if (skin === 'triangle') {
+                    return { x: -width / 6, y: 0 };
+                }
                 return { x: 0, y: 0 };
-            } else if (shopPurchases.currentSkin === 'triangle') {
-                // Центроид треугольника смещен влево
-                // Вершины: (halfW, 0), (-halfW, -halfH), (-halfW, halfH)
-                // Центроид: (-halfW/3, 0)
-                return { x: -bird.width / 6, y: 0 };
+            },
+            
+            getBirdCenter(bird) {
+                const offset = this.getCenterOffset(Shop.purchases.currentSkin, bird.width, bird.height);
+                const cx = bird.x + bird.width / 2;
+                const cy = bird.y + bird.height / 2;
+                
+                const cos = Math.cos(bird.rotation);
+                const sin = Math.sin(bird.rotation);
+                
+                return {
+                    x: cx + (offset.x * cos - offset.y * sin),
+                    y: cy + (offset.x * sin + offset.y * cos)
+                };
+            },
+            
+            getBirdHitboxPoints(bird) {
+                const cx = bird.x + bird.width / 2;
+                const cy = bird.y + bird.height / 2;
+                const points = [];
+                
+                if (Shop.purchases.currentSkin === 'square') {
+                    const halfW = bird.width / 2;
+                    const halfH = bird.height / 2;
+                    points.push(
+                        { x: -halfW, y: -halfH },
+                        { x: halfW, y: -halfH },
+                        { x: halfW, y: halfH },
+                        { x: -halfW, y: halfH }
+                    );
+                } else if (Shop.purchases.currentSkin === 'triangle') {
+                    const halfW = bird.width / 2;
+                    const halfH = bird.height / 2;
+                    points.push(
+                        { x: halfW, y: 0 },
+                        { x: -halfW, y: -halfH },
+                        { x: -halfW, y: halfH }
+                    );
+                }
+                
+                const rotatedPoints = [];
+                const cos = Math.cos(bird.rotation);
+                const sin = Math.sin(bird.rotation);
+                
+                for (let p of points) {
+                    rotatedPoints.push({
+                        x: cx + (p.x * cos - p.y * sin),
+                        y: cy + (p.x * sin + p.y * cos)
+                    });
+                }
+                
+                return rotatedPoints;
+            },
+            
+            polygonRectCollision(polyPoints, rectX, rectY, rectW, rectH) {
+                const rectPoints = [
+                    { x: rectX, y: rectY },
+                    { x: rectX + rectW, y: rectY },
+                    { x: rectX + rectW, y: rectY + rectH },
+                    { x: rectX, y: rectY + rectH }
+                ];
+                
+                const axes = [];
+                
+                for (let i = 0; i < polyPoints.length; i++) {
+                    const p1 = polyPoints[i];
+                    const p2 = polyPoints[(i + 1) % polyPoints.length];
+                    const edge = { x: p2.x - p1.x, y: p2.y - p1.y };
+                    axes.push({ x: -edge.y, y: edge.x });
+                }
+                
+                axes.push({ x: 1, y: 0 });
+                axes.push({ x: 0, y: 1 });
+                
+                for (let axis of axes) {
+                    const len = Math.sqrt(axis.x * axis.x + axis.y * axis.y);
+                    if (len === 0) continue;
+                    axis.x /= len;
+                    axis.y /= len;
+                    
+                    let polyMin = Infinity, polyMax = -Infinity;
+                    for (let p of polyPoints) {
+                        const projection = p.x * axis.x + p.y * axis.y;
+                        polyMin = Math.min(polyMin, projection);
+                        polyMax = Math.max(polyMax, projection);
+                    }
+                    
+                    let rectMin = Infinity, rectMax = -Infinity;
+                    for (let p of rectPoints) {
+                        const projection = p.x * axis.x + p.y * axis.y;
+                        rectMin = Math.min(rectMin, projection);
+                        rectMax = Math.max(rectMax, projection);
+                    }
+                    
+                    if (polyMax < rectMin || rectMax < polyMin) {
+                        return false;
+                    }
+                }
+                
+                return true;
+            },
+            
+            checkCollision(bird, pipes) {
+                if (!GameState.progressFlags.hasPipesEnabled) return false;
+                
+                const hitboxPoints = this.getBirdHitboxPoints(bird);
+                
+                for (let p of hitboxPoints) {
+                    if (p.y < 0 || p.y > canvas.height) {
+                        if (Shop.purchases.hasShield) {
+                            Shop.purchases.hasShield = false;
+                            Shop.save();
+                            bird.y = Math.max(0, Math.min(bird.y, canvas.height - bird.height));
+                            bird.velocity = 0;
+                            return false;
+                        }
+                        return true;
+                    }
+                }
+                
+                for (let i = pipes.length - 1; i >= 0; i--) {
+                    let pipe = pipes[i];
+                    
+                    if (this.polygonRectCollision(hitboxPoints, pipe.x, 0, Config.PIPE_WIDTH, pipe.gapY)) {
+                        if (Shop.purchases.hasShield) {
+                            Shop.purchases.hasShield = false;
+                            Shop.save();
+                            pipes.splice(i, 1);
+                            return false;
+                        }
+                        return true;
+                    }
+                    
+                    if (this.polygonRectCollision(hitboxPoints, pipe.x, pipe.gapY + Config.PIPE_GAP, Config.PIPE_WIDTH, canvas.height - pipe.gapY - Config.PIPE_GAP)) {
+                        if (Shop.purchases.hasShield) {
+                            Shop.purchases.hasShield = false;
+                            Shop.save();
+                            pipes.splice(i, 1);
+                            return false;
+                        }
+                        return true;
+                    }
+                }
+                
+                return false;
             }
-            return { x: 0, y: 0 };
-        }
+        };
         
-        // Получение реального центра птички с учетом формы
-        function getBirdCenter() {
-            const offset = getCenterOffset();
-            const cx = bird.x + bird.width / 2;
-            const cy = bird.y + bird.height / 2;
+        // ========================================
+        // GAMESTATE - Состояние игры
+        // ========================================
+        const GameState = {
+            bird: {
+                x: 200 - 15,
+                y: 300 - 15,
+                targetX: 80,
+                width: 30,
+                height: 30,
+                velocity: 0,
+                isMovingLeft: false,
+                rotation: 0,
+                targetRotation: 0
+            },
             
-            // Применяем поворот к смещению
-            const cos = Math.cos(bird.rotation);
-            const sin = Math.sin(bird.rotation);
+            pipes: [],
+            coins: [],
+            frameCount: 0,
+            score: 0,
+            bestScore: 0,
+            totalCoins: 0,
+            coinsThisRun: 0,
+            active: true,
+            state: 'playing',
+            jumpCount: 0,
             
-            return {
-                x: cx + (offset.x * cos - offset.y * sin),
-                y: cy + (offset.x * sin + offset.y * cos)
-            };
-        }
-        
-        function getBirdHitboxPoints() {
-            const cx = bird.x + bird.width / 2;
-            const cy = bird.y + bird.height / 2;
-            const points = [];
+            birdAppearing: false,
+            birdOpacity: 0,
+            scoreVisible: false,
             
-            if (shopPurchases.currentSkin === 'square') {
-                const halfW = bird.width / 2;
-                const halfH = bird.height / 2;
-                points.push(
-                    { x: -halfW, y: -halfH },
-                    { x: halfW, y: -halfH },
-                    { x: halfW, y: halfH },
-                    { x: -halfW, y: halfH }
-                );
-            } else if (shopPurchases.currentSkin === 'triangle') {
-                const halfW = bird.width / 2;
-                const halfH = bird.height / 2;
-                points.push(
-                    { x: halfW, y: 0 },
-                    { x: -halfW, y: -halfH },
-                    { x: -halfW, y: halfH }
-                );
-            }
+            progressFlags: {
+                hasBirdCreated: false,
+                hasMovedLeft: false,
+                hasActivatedJumps: false,
+                hasActivatedGravity: false,
+                hasPipesEnabled: false,
+                hasCoinsEnabled: false,
+                hasSeenScore: false,
+                hasSeenCoins: false,
+                hasPlayedFirstGame: false
+            },
             
-            const rotatedPoints = [];
-            const cos = Math.cos(bird.rotation);
-            const sin = Math.sin(bird.rotation);
+            init() {
+                const savedProgress = Storage.loadProgress();
+                if (savedProgress) {
+                    this.progressFlags = savedProgress;
+                }
+                
+                this.bestScore = Storage.loadBestScore();
+                this.totalCoins = Storage.loadTotalCoins();
+                this.updateCoinsDisplay();
+                
+                if (this.progressFlags.hasSeenCoins) {
+                    document.getElementById('totalCoinsDisplay').classList.add('visible');
+                }
+                
+                if (this.progressFlags.hasPlayedFirstGame) {
+                    UI.showMenu(false);
+                    this.active = false;
+                }
+            },
             
-            for (let p of points) {
-                rotatedPoints.push({
-                    x: cx + (p.x * cos - p.y * sin),
-                    y: cy + (p.x * sin + p.y * cos)
+            saveProgress() {
+                Storage.saveProgress(this.progressFlags);
+            },
+            
+            updateCoinsDisplay() {
+                document.getElementById('totalCoinsDisplay').textContent = `🪙 ${this.totalCoins}`;
+            },
+            
+            reset() {
+                this.progressFlags = {
+                    hasBirdCreated: false,
+                    hasMovedLeft: false,
+                    hasActivatedJumps: false,
+                    hasActivatedGravity: false,
+                    hasPipesEnabled: false,
+                    hasCoinsEnabled: false,
+                    hasSeenScore: false,
+                    hasSeenCoins: false,
+                    hasPlayedFirstGame: false
+                };
+                this.jumpCount = 0;
+                this.bestScore = 0;
+                this.totalCoins = 0;
+                this.coinsThisRun = 0;
+                Storage.clearAll();
+                this.saveProgress();
+                Shop.reset();
+                this.restart();
+            },
+            
+            createPipe() {
+                const minGapY = 100;
+                const maxGapY = canvas.height - Config.PIPE_GAP - 100;
+                const gapY = Math.random() * (maxGapY - minGapY) + minGapY;
+                
+                this.pipes.push({
+                    x: canvas.width,
+                    gapY: gapY,
+                    passed: false
                 });
-            }
-            
-            return rotatedPoints;
-        }
-        
-        function polygonRectCollision(polyPoints, rectX, rectY, rectW, rectH) {
-            const rectPoints = [
-                { x: rectX, y: rectY },
-                { x: rectX + rectW, y: rectY },
-                { x: rectX + rectW, y: rectY + rectH },
-                { x: rectX, y: rectY + rectH }
-            ];
-            
-            const axes = [];
-            
-            for (let i = 0; i < polyPoints.length; i++) {
-                const p1 = polyPoints[i];
-                const p2 = polyPoints[(i + 1) % polyPoints.length];
-                const edge = { x: p2.x - p1.x, y: p2.y - p1.y };
-                axes.push({ x: -edge.y, y: edge.x });
-            }
-            
-            axes.push({ x: 1, y: 0 });
-            axes.push({ x: 0, y: 1 });
-            
-            for (let axis of axes) {
-                const len = Math.sqrt(axis.x * axis.x + axis.y * axis.y);
-                if (len === 0) continue;
-                axis.x /= len;
-                axis.y /= len;
                 
-                let polyMin = Infinity, polyMax = -Infinity;
-                for (let p of polyPoints) {
-                    const projection = p.x * axis.x + p.y * axis.y;
-                    polyMin = Math.min(polyMin, projection);
-                    polyMax = Math.max(polyMax, projection);
+                if (this.progressFlags.hasCoinsEnabled) {
+                    this.coins.push({
+                        x: canvas.width + Config.PIPE_WIDTH / 2,
+                        y: gapY + Config.PIPE_GAP / 2,
+                        radius: 10,
+                        collected: false
+                    });
                 }
+            },
+            
+            updateScore() {
+                for (let pipe of this.pipes) {
+                    if (!pipe.passed && pipe.x + Config.PIPE_WIDTH < this.bird.x) {
+                        pipe.passed = true;
+                        this.score++;
+                        document.getElementById('score').textContent = this.score;
+                        
+                        if (!this.progressFlags.hasSeenScore) {
+                            this.progressFlags.hasSeenScore = true;
+                            document.getElementById('score').classList.add('visible');
+                            this.scoreVisible = true;
+                            this.saveProgress();
+                        }
+                        
+                        if (this.score > this.bestScore) {
+                            this.bestScore = this.score;
+                            Storage.saveBestScore(this.bestScore);
+                        }
+                    }
+                }
+            },
+            
+            collectCoins() {
+                const magnetRadius = Shop.getMagnetRadius();
+                const magnetSpeed = Shop.getMagnetSpeed();
+                const center = Physics.getBirdCenter(this.bird);
                 
-                let rectMin = Infinity, rectMax = -Infinity;
-                for (let p of rectPoints) {
-                    const projection = p.x * axis.x + p.y * axis.y;
-                    rectMin = Math.min(rectMin, projection);
-                    rectMax = Math.max(rectMax, projection);
-                }
-                
-                if (polyMax < rectMin || rectMax < polyMin) {
-                    return false;
-                }
-            }
-            
-            return true;
-        }
-        
-        function showMenu(isGameOver = false) {
-            gameState = isGameOver ? 'gameOver' : 'menu';
-            
-            if (isGameOver) {
-                menuTitle.textContent = 'ИГРА ОКОНЧЕНА';
-                statsSection.style.display = 'block';
-                playButton.textContent = '🔄 Играть снова';
-            } else {
-                menuTitle.textContent = 'Ptuška';
-                statsSection.style.display = 'none';
-                playButton.textContent = '🎮 Играть';
-            }
-            
-            menuDiv.style.display = 'block';
-            shopDiv.style.display = 'none';
-            mainMenuSection.style.display = 'block';
-        }
-        
-        function hideMenuAndPlay() {
-            menuDiv.style.display = 'none';
-            gameState = 'playing';
-            restart();
-        }
-        
-        function init() {
-            loadProgress();
-            totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
-            
-            if (progressFlags.hasSeenCoins) {
-                totalCoinsDisplay.classList.add('visible');
-            }
-            
-            if (progressFlags.hasPlayedFirstGame) {
-                showMenu(false);
-                gameActive = false;
-            }
-        }
-        
-        function createPipe() {
-            const minGapY = 100;
-            const maxGapY = canvas.height - PIPE_GAP - 100;
-            const gapY = Math.random() * (maxGapY - minGapY) + minGapY;
-            
-            pipes.push({
-                x: canvas.width,
-                gapY: gapY,
-                passed: false
-            });
-            
-            if (progressFlags.hasCoinsEnabled) {
-                coins.push({
-                    x: canvas.width + PIPE_WIDTH / 2,
-                    y: gapY + PIPE_GAP / 2,
-                    radius: 10,
-                    collected: false
-                });
-            }
-        }
-        
-        function updateScore() {
-            for (let pipe of pipes) {
-                if (!pipe.passed && pipe.x + PIPE_WIDTH < bird.x) {
-                    pipe.passed = true;
-                    score++;
-                    scoreDiv.textContent = score;
+                for (let coin of this.coins) {
+                    if (coin.collected) continue;
                     
-                    if (!progressFlags.hasSeenScore) {
-                        progressFlags.hasSeenScore = true;
-                        scoreDiv.classList.add('visible');
-                        scoreVisible = true;
-                        saveProgress();
+                    const dx = coin.x - center.x;
+                    const dy = coin.y - center.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (Shop.purchases.hasMagnet && distance < magnetRadius) {
+                        const angle = Math.atan2(dy, dx);
+                        coin.x -= Math.cos(angle) * magnetSpeed;
+                        coin.y -= Math.sin(angle) * magnetSpeed;
                     }
                     
-                    if (score > bestScore) {
-                        bestScore = score;
-                        localStorage.setItem('bestScore', bestScore);
+                    if (distance < coin.radius + this.bird.width / 2) {
+                        coin.collected = true;
+                        this.totalCoins++;
+                        this.coinsThisRun++;
+                        Storage.saveTotalCoins(this.totalCoins);
+                        this.updateCoinsDisplay();
+                        
+                        if (!this.progressFlags.hasSeenCoins) {
+                            this.progressFlags.hasSeenCoins = true;
+                            document.getElementById('totalCoinsDisplay').classList.add('visible');
+                            this.saveProgress();
+                        }
                     }
                 }
-            }
-        }
-        
-        function collectCoins() {
-            const magnetRadius = getMagnetRadius();
-            const magnetSpeed = getMagnetSpeed();
-            const center = getBirdCenter();
+            },
             
-            for (let coin of coins) {
-                if (coin.collected) continue;
-                
-                const dx = coin.x - center.x;
-                const dy = coin.y - center.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (shopPurchases.hasMagnet && distance < magnetRadius) {
-                    const angle = Math.atan2(dy, dx);
-                    coin.x -= Math.cos(angle) * magnetSpeed;
-                    coin.y -= Math.sin(angle) * magnetSpeed;
+            jump() {
+                if (!this.progressFlags.hasBirdCreated) {
+                    this.progressFlags.hasBirdCreated = true;
+                    this.birdAppearing = true;
+                    this.birdOpacity = 0;
+                    this.saveProgress();
+                    return;
                 }
                 
-                if (distance < coin.radius + bird.width / 2) {
-                    coin.collected = true;
-                    totalCoins++;
-                    coinsThisRun++;
-                    localStorage.setItem('totalCoins', totalCoins);
-                    totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
+                if (!this.progressFlags.hasMovedLeft) {
+                    this.bird.isMovingLeft = true;
+                    return;
+                }
+                
+                if (!this.progressFlags.hasActivatedJumps) {
+                    this.progressFlags.hasActivatedJumps = true;
+                    this.saveProgress();
+                }
+                
+                this.jumpCount++;
+                
+                if (this.jumpCount >= 4 && !this.progressFlags.hasActivatedGravity) {
+                    this.progressFlags.hasActivatedGravity = true;
+                    this.saveProgress();
+                }
+                
+                if (this.jumpCount >= 5 && !this.progressFlags.hasPipesEnabled) {
+                    this.progressFlags.hasPipesEnabled = true;
+                    this.saveProgress();
+                }
+                
+                if (this.jumpCount >= 6 && !this.progressFlags.hasCoinsEnabled) {
+                    this.progressFlags.hasCoinsEnabled = true;
+                    this.saveProgress();
+                }
+                
+                this.bird.velocity = Config.JUMP_STRENGTH;
+            },
+            
+            restart() {
+                this.coinsThisRun = 0;
+                
+                if (!this.progressFlags.hasBirdCreated) {
+                    this.birdAppearing = false;
+                    this.birdOpacity = 0;
+                }
+                
+                if (this.progressFlags.hasBirdCreated && this.progressFlags.hasMovedLeft) {
+                    this.bird.x = 80;
+                } else {
+                    this.bird.x = 200 - 15;
+                }
+                
+                this.bird.y = 300 - 15;
+                this.bird.velocity = 0;
+                this.bird.rotation = 0;
+                this.bird.targetRotation = 0;
+                this.bird.isMovingLeft = false;
+                this.pipes = [];
+                this.coins = [];
+                this.frameCount = 0;
+                this.score = 0;
+                this.active = true;
+                document.getElementById('menu').style.display = 'none';
+                document.getElementById('score').textContent = '0';
+                
+                if (this.progressFlags.hasSeenScore) {
+                    document.getElementById('score').classList.add('visible');
+                    this.scoreVisible = true;
+                } else {
+                    document.getElementById('score').classList.remove('visible');
+                    this.scoreVisible = false;
+                }
+                
+                if (this.progressFlags.hasSeenCoins) {
+                    document.getElementById('totalCoinsDisplay').classList.add('visible');
+                } else {
+                    document.getElementById('totalCoinsDisplay').classList.remove('visible');
+                }
+                
+                this.startGameLoop();
+            },
+            
+            update() {
+                if (this.bird.isMovingLeft && !this.progressFlags.hasMovedLeft) {
+                    if (this.bird.x > this.bird.targetX) {
+                        this.bird.x -= Config.MOVE_SPEED;
+                        if (this.bird.x <= this.bird.targetX) {
+                            this.bird.x = this.bird.targetX;
+                            this.bird.isMovingLeft = false;
+                            this.progressFlags.hasMovedLeft = true;
+                            this.saveProgress();
+                        }
+                    }
+                    this.bird.velocity = 0;
+                } else if (this.progressFlags.hasActivatedGravity) {
+                    this.bird.velocity += Config.GRAVITY;
+                    this.bird.y += this.bird.velocity;
+                } else if (this.progressFlags.hasActivatedJumps) {
+                    if (this.bird.velocity < 0) {
+                        this.bird.velocity += 0.5;
+                        if (this.bird.velocity >= 0) {
+                            this.bird.velocity = 0;
+                        }
+                    }
+                    this.bird.y += this.bird.velocity;
+                }
+                
+                // Анимация поворота
+                if (Shop.purchases.currentAnimation === 'rotation' && this.progressFlags.hasActivatedGravity) {
+                    if (this.bird.velocity < -2) {
+                        this.bird.targetRotation = -Math.PI / 4;
+                    } else if (this.bird.velocity > 2) {
+                        this.bird.targetRotation = Math.PI / 4;
+                    } else {
+                        this.bird.targetRotation = 0;
+                    }
                     
-                    if (!progressFlags.hasSeenCoins) {
-                        progressFlags.hasSeenCoins = true;
-                        totalCoinsDisplay.classList.add('visible');
-                        saveProgress();
+                    const rotationSpeed = 0.1;
+                    if (Math.abs(this.bird.targetRotation - this.bird.rotation) > 0.01) {
+                        this.bird.rotation += (this.bird.targetRotation - this.bird.rotation) * rotationSpeed;
                     }
-                }
-            }
-        }
-        
-        function checkCollision() {
-            if (!progressFlags.hasPipesEnabled) return false;
-            
-            const hitboxPoints = getBirdHitboxPoints();
-            
-            for (let p of hitboxPoints) {
-                if (p.y < 0 || p.y > canvas.height) {
-                    if (shopPurchases.hasShield) {
-                        shopPurchases.hasShield = false;
-                        saveShop();
-                        bird.y = Math.max(0, Math.min(bird.y, canvas.height - bird.height));
-                        bird.velocity = 0;
-                        return false;
-                    }
-                    return true;
-                }
-            }
-            
-            for (let i = pipes.length - 1; i >= 0; i--) {
-                let pipe = pipes[i];
-                
-                if (polygonRectCollision(hitboxPoints, pipe.x, 0, PIPE_WIDTH, pipe.gapY)) {
-                    if (shopPurchases.hasShield) {
-                        shopPurchases.hasShield = false;
-                        saveShop();
-                        pipes.splice(i, 1);
-                        return false;
-                    }
-                    return true;
+                } else {
+                    this.bird.rotation = 0;
+                    this.bird.targetRotation = 0;
                 }
                 
-                if (polygonRectCollision(hitboxPoints, pipe.x, pipe.gapY + PIPE_GAP, PIPE_WIDTH, canvas.height - pipe.gapY - PIPE_GAP)) {
-                    if (shopPurchases.hasShield) {
-                        shopPurchases.hasShield = false;
-                        saveShop();
-                        pipes.splice(i, 1);
-                        return false;
+                // Анимация появления
+                if (this.birdAppearing) {
+                    this.birdOpacity += 0.02;
+                    if (this.birdOpacity >= 1) {
+                        this.birdOpacity = 1;
+                        this.birdAppearing = false;
                     }
-                    return true;
+                } else if (this.progressFlags.hasBirdCreated) {
+                    this.birdOpacity = 1;
                 }
-            }
-            
-            return false;
-        }
-        
-        function jump() {
-            if (!progressFlags.hasBirdCreated) {
-                progressFlags.hasBirdCreated = true;
-                birdAppearing = true;
-                birdOpacity = 0;
-                saveProgress();
-                return;
-            }
-            
-            if (!progressFlags.hasMovedLeft) {
-                bird.isMovingLeft = true;
-                return;
-            }
-            
-            if (!progressFlags.hasActivatedJumps) {
-                progressFlags.hasActivatedJumps = true;
-                saveProgress();
-            }
-            
-            jumpCount++;
-            
-            if (jumpCount >= 4 && !progressFlags.hasActivatedGravity) {
-                progressFlags.hasActivatedGravity = true;
-                saveProgress();
-            }
-            
-            if (jumpCount >= 5 && !progressFlags.hasPipesEnabled) {
-                progressFlags.hasPipesEnabled = true;
-                saveProgress();
-            }
-            
-            if (jumpCount >= 6 && !progressFlags.hasCoinsEnabled) {
-                progressFlags.hasCoinsEnabled = true;
-                saveProgress();
-            }
-            
-            bird.velocity = JUMP_STRENGTH;
-        }
-        
-        function restart() {
-            coinsThisRun = 0;
-            
-            if (!progressFlags.hasBirdCreated) {
-                birdAppearing = false;
-                birdOpacity = 0;
-            }
-            
-            if (progressFlags.hasBirdCreated && progressFlags.hasMovedLeft) {
-                bird.x = 80;
-            } else {
-                bird.x = 200 - 15;
-            }
-            
-            bird.y = 300 - 15;
-            bird.velocity = 0;
-            bird.rotation = 0;
-            bird.targetRotation = 0;
-            bird.isMovingLeft = false;
-            pipes = [];
-            coins = [];
-            frameCount = 0;
-            score = 0;
-            gameActive = true;
-            menuDiv.style.display = 'none';
-            scoreDiv.textContent = '0';
-            
-            if (progressFlags.hasSeenScore) {
-                scoreDiv.classList.add('visible');
-                scoreVisible = true;
-            } else {
-                scoreDiv.classList.remove('visible');
-                scoreVisible = false;
-            }
-            
-            if (progressFlags.hasSeenCoins) {
-                totalCoinsDisplay.classList.add('visible');
-            } else {
-                totalCoinsDisplay.classList.remove('visible');
-            }
-            
-            startGameLoop();
-        }
-        
-        function drawBird() {
-            if (!progressFlags.hasBirdCreated) return;
-            
-            const colors = getColors();
-            
-            ctx.save();
-            ctx.globalAlpha = birdOpacity;
-            
-            const cx = bird.x + bird.width / 2;
-            const cy = bird.y + bird.height / 2;
-            
-            ctx.translate(cx, cy);
-            ctx.rotate(bird.rotation);
-            
-            if (shopPurchases.hasShield) {
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = colors.shieldColor;
-                ctx.strokeStyle = colors.shieldColor;
-                ctx.lineWidth = 3;
                 
-                if (shopPurchases.currentSkin === 'square') {
-                    ctx.strokeRect(-bird.width / 2 - 2, -bird.height / 2 - 2, bird.width + 4, bird.height + 4);
-                } else if (shopPurchases.currentSkin === 'triangle') {
+                this.frameCount++;
+                
+                // Создание труб
+                if (this.progressFlags.hasPipesEnabled && this.frameCount % Config.PIPE_SPAWN_INTERVAL === 0) {
+                    this.createPipe();
+                }
+                
+                // Обновление труб
+                for (let i = this.pipes.length - 1; i >= 0; i--) {
+                    let pipe = this.pipes[i];
+                    pipe.x -= Config.PIPE_SPEED;
+                    
+                    if (pipe.x + Config.PIPE_WIDTH < 0) {
+                        this.pipes.splice(i, 1);
+                    }
+                }
+                
+                // Обновление монет
+                for (let i = this.coins.length - 1; i >= 0; i--) {
+                    let coin = this.coins[i];
+                    
+                    if (coin.collected) {
+                        this.coins.splice(i, 1);
+                        continue;
+                    }
+                    
+                    coin.x -= Config.PIPE_SPEED;
+                    
+                    if (coin.x + coin.radius < 0) {
+                        this.coins.splice(i, 1);
+                    }
+                }
+                
+                // Сбор монет
+                if (this.progressFlags.hasCoinsEnabled) {
+                    this.collectCoins();
+                }
+                
+                // Обновление счёта
+                if (this.progressFlags.hasPipesEnabled) {
+                    this.updateScore();
+                }
+                
+                // Проверка столкновений
+                if (Physics.checkCollision(this.bird, this.pipes)) {
+                    this.active = false;
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                        animationFrameId = null;
+                    }
+                    
+                    if (!this.progressFlags.hasPlayedFirstGame) {
+                        this.progressFlags.hasPlayedFirstGame = true;
+                        this.saveProgress();
+                    }
+                    
+                    document.getElementById('finalScore').textContent = `Ваш счёт: ${this.score}`;
+                    document.getElementById('bestScore').textContent = `Лучший результат: ${this.bestScore}`;
+                    
+                    if (this.progressFlags.hasCoinsEnabled) {
+                        document.getElementById('coinsThisRun').textContent = `Монет собрано: ${this.coinsThisRun}`;
+                        document.getElementById('coinsThisRun').style.display = 'block';
+                    } else {
+                        document.getElementById('coinsThisRun').style.display = 'none';
+                    }
+                    
+                    UI.updateShopUI();
+                    UI.showMenu(true);
+                }
+            },
+            
+            startGameLoop() {
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                }
+                
+                const gameLoop = () => {
+                    if (!this.active) {
+                        if (animationFrameId) {
+                            cancelAnimationFrame(animationFrameId);
+                            animationFrameId = null;
+                        }
+                        return;
+                    }
+                    
+                    Renderer.render();
+                    this.update();
+                    
+                    animationFrameId = requestAnimationFrame(gameLoop);
+                };
+                
+                animationFrameId = requestAnimationFrame(gameLoop);
+            }
+        };
+        
+        // ========================================
+        // RENDERER - Отрисовка
+        // ========================================
+        const Renderer = {
+            drawBird() {
+                if (!GameState.progressFlags.hasBirdCreated) return;
+                
+                const colors = Shop.getColors();
+                const bird = GameState.bird;
+                
+                ctx.save();
+                ctx.globalAlpha = GameState.birdOpacity;
+                
+                const cx = bird.x + bird.width / 2;
+                const cy = bird.y + bird.height / 2;
+                
+                ctx.translate(cx, cy);
+                ctx.rotate(bird.rotation);
+                
+                if (Shop.purchases.hasShield) {
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = colors.shieldColor;
+                    ctx.strokeStyle = colors.shieldColor;
+                    ctx.lineWidth = 3;
+                    
+                    if (Shop.purchases.currentSkin === 'square') {
+                        ctx.strokeRect(-bird.width / 2 - 2, -bird.height / 2 - 2, bird.width + 4, bird.height + 4);
+                    } else if (Shop.purchases.currentSkin === 'triangle') {
+                        ctx.beginPath();
+                        ctx.moveTo(bird.width / 2, 0);
+                        ctx.lineTo(-bird.width / 2, -bird.height / 2);
+                        ctx.lineTo(-bird.width / 2, bird.height / 2);
+                        ctx.closePath();
+                        ctx.stroke();
+                    }
+                    ctx.shadowBlur = 0;
+                }
+                
+                ctx.fillStyle = colors.foreground;
+                
+                if (Shop.purchases.currentSkin === 'square') {
+                    ctx.fillRect(-bird.width / 2, -bird.height / 2, bird.width, bird.height);
+                } else if (Shop.purchases.currentSkin === 'triangle') {
                     ctx.beginPath();
                     ctx.moveTo(bird.width / 2, 0);
                     ctx.lineTo(-bird.width / 2, -bird.height / 2);
                     ctx.lineTo(-bird.width / 2, bird.height / 2);
                     ctx.closePath();
-                    ctx.stroke();
-                }
-                ctx.shadowBlur = 0;
-            }
-            
-            ctx.fillStyle = colors.foreground;
-            
-            if (shopPurchases.currentSkin === 'square') {
-                ctx.fillRect(-bird.width / 2, -bird.height / 2, bird.width, bird.height);
-            } else if (shopPurchases.currentSkin === 'triangle') {
-                ctx.beginPath();
-                ctx.moveTo(bird.width / 2, 0);
-                ctx.lineTo(-bird.width / 2, -bird.height / 2);
-                ctx.lineTo(-bird.width / 2, bird.height / 2);
-                ctx.closePath();
-                ctx.fill();
-            }
-            
-            ctx.restore();
-        }
-        
-        function drawDebugHitbox() {
-            if (!debugMode || !progressFlags.hasBirdCreated) return;
-            
-            const colors = getColors();
-            const hitboxPoints = getBirdHitboxPoints();
-            
-            ctx.strokeStyle = colors.debugHitbox;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            
-            for (let i = 0; i < hitboxPoints.length; i++) {
-                const p = hitboxPoints[i];
-                if (i === 0) {
-                    ctx.moveTo(p.x, p.y);
-                } else {
-                    ctx.lineTo(p.x, p.y);
-                }
-            }
-            ctx.closePath();
-            ctx.stroke();
-            
-            ctx.fillStyle = colors.debugPoints;
-            for (let p of hitboxPoints) {
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            
-            const center = getBirdCenter();
-            ctx.fillStyle = colors.debugCenter;
-            ctx.beginPath();
-            ctx.arc(center.x, center.y, 4, 0, Math.PI * 2);
-            ctx.fill();
-            
-            if (shopPurchases.hasMagnet) {
-                ctx.strokeStyle = colors.magnetColor;
-                ctx.lineWidth = 1;
-                ctx.setLineDash([5, 5]);
-                ctx.beginPath();
-                ctx.arc(center.x, center.y, getMagnetRadius(), 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
-        }
-        
-        function gameLoop() {
-            if (!gameActive) {
-                if (animationFrameId) {
-                    cancelAnimationFrame(animationFrameId);
-                    animationFrameId = null;
-                }
-                return;
-            }
-            
-            const colors = getColors();
-            
-            ctx.fillStyle = colors.background;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            if (bird.isMovingLeft && !progressFlags.hasMovedLeft) {
-                if (bird.x > bird.targetX) {
-                    bird.x -= MOVE_SPEED;
-                    if (bird.x <= bird.targetX) {
-                        bird.x = bird.targetX;
-                        bird.isMovingLeft = false;
-                        progressFlags.hasMovedLeft = true;
-                        saveProgress();
-                    }
-                }
-                bird.velocity = 0;
-            } else if (progressFlags.hasActivatedGravity) {
-                bird.velocity += GRAVITY;
-                bird.y += bird.velocity;
-            } else if (progressFlags.hasActivatedJumps) {
-                if (bird.velocity < 0) {
-                    bird.velocity += 0.5;
-                    if (bird.velocity >= 0) {
-                        bird.velocity = 0;
-                    }
-                }
-                bird.y += bird.velocity;
-            }
-            
-            if (shopPurchases.currentAnimation === 'rotation' && progressFlags.hasActivatedGravity) {
-                if (bird.velocity < -2) {
-                    bird.targetRotation = -Math.PI / 4;
-                } else if (bird.velocity > 2) {
-                    bird.targetRotation = Math.PI / 4;
-                } else {
-                    bird.targetRotation = 0;
+                    ctx.fill();
                 }
                 
-                const rotationSpeed = 0.1;
-                if (Math.abs(bird.targetRotation - bird.rotation) > 0.01) {
-                    bird.rotation += (bird.targetRotation - bird.rotation) * rotationSpeed;
-                }
-            } else {
-                bird.rotation = 0;
-                bird.targetRotation = 0;
-            }
+                ctx.restore();
+            },
             
-            if (birdAppearing) {
-                birdOpacity += 0.02;
-                if (birdOpacity >= 1) {
-                    birdOpacity = 1;
-                    birdAppearing = false;
+            drawPipes() {
+                const colors = Shop.getColors();
+                
+                for (let pipe of GameState.pipes) {
+                    ctx.fillStyle = colors.foreground;
+                    ctx.fillRect(pipe.x, 0, Config.PIPE_WIDTH, pipe.gapY);
+                    ctx.fillRect(pipe.x, pipe.gapY + Config.PIPE_GAP, Config.PIPE_WIDTH, canvas.height - pipe.gapY - Config.PIPE_GAP);
+                    
+                    if (debugMode) {
+                        ctx.strokeStyle = colors.debugHitbox;
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(pipe.x, 0, Config.PIPE_WIDTH, pipe.gapY);
+                        ctx.strokeRect(pipe.x, pipe.gapY + Config.PIPE_GAP, Config.PIPE_WIDTH, canvas.height - pipe.gapY - Config.PIPE_GAP);
+                    }
                 }
-            } else if (progressFlags.hasBirdCreated) {
-                birdOpacity = 1;
-            }
+            },
             
-            if (shopPurchases.hasMagnet && progressFlags.hasBirdCreated && !debugMode) {
-                const magnetRadius = getMagnetRadius();
-                const center = getBirdCenter();
+            drawCoins() {
+                const colors = Shop.getColors();
+                
+                for (let coin of GameState.coins) {
+                    ctx.fillStyle = colors.foreground;
+                    ctx.beginPath();
+                    ctx.arc(coin.x, coin.y, coin.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    if (debugMode) {
+                        ctx.strokeStyle = colors.debugPoints;
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            },
+            
+            drawMagnetRadius() {
+                if (!Shop.purchases.hasMagnet || !GameState.progressFlags.hasBirdCreated || debugMode) return;
+                
+                const colors = Shop.getColors();
+                const magnetRadius = Shop.getMagnetRadius();
+                const center = Physics.getBirdCenter(GameState.bird);
+                
                 ctx.globalAlpha = 0.15;
                 ctx.fillStyle = colors.magnetColor;
                 ctx.beginPath();
                 ctx.arc(center.x, center.y, magnetRadius, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.globalAlpha = 1.0;
-            }
+            },
             
-            drawBird();
-            
-            frameCount++;
-            
-            if (progressFlags.hasPipesEnabled && frameCount % PIPE_SPAWN_INTERVAL === 0) {
-                createPipe();
-            }
-            
-            for (let i = pipes.length - 1; i >= 0; i--) {
-                let pipe = pipes[i];
-                pipe.x -= PIPE_SPEED;
+            drawDebugHitbox() {
+                if (!debugMode || !GameState.progressFlags.hasBirdCreated) return;
                 
-                if (pipe.x + PIPE_WIDTH < 0) {
-                    pipes.splice(i, 1);
-                    continue;
-                }
+                const colors = Shop.getColors();
+                const hitboxPoints = Physics.getBirdHitboxPoints(GameState.bird);
                 
-                ctx.fillStyle = colors.foreground;
-                ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.gapY);
-                ctx.fillRect(pipe.x, pipe.gapY + PIPE_GAP, PIPE_WIDTH, canvas.height - pipe.gapY - PIPE_GAP);
-                
-                if (debugMode) {
-                    ctx.strokeStyle = colors.debugHitbox;
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(pipe.x, 0, PIPE_WIDTH, pipe.gapY);
-                    ctx.strokeRect(pipe.x, pipe.gapY + PIPE_GAP, PIPE_WIDTH, canvas.height - pipe.gapY - PIPE_GAP);
-                }
-            }
-            
-            for (let i = coins.length - 1; i >= 0; i--) {
-                let coin = coins[i];
-                
-                if (coin.collected) {
-                    coins.splice(i, 1);
-                    continue;
-                }
-                
-                coin.x -= PIPE_SPEED;
-                
-                if (coin.x + coin.radius < 0) {
-                    coins.splice(i, 1);
-                    continue;
-                }
-                
-                ctx.fillStyle = colors.foreground;
+                ctx.strokeStyle = colors.debugHitbox;
+                ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.arc(coin.x, coin.y, coin.radius, 0, Math.PI * 2);
-                ctx.fill();
                 
-                if (debugMode) {
-                    ctx.strokeStyle = colors.debugPoints;
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-                }
-            }
-            
-            drawDebugHitbox();
-            
-            if (progressFlags.hasCoinsEnabled) {
-                collectCoins();
-            }
-            
-            if (progressFlags.hasPipesEnabled) {
-                updateScore();
-            }
-            
-            if (checkCollision()) {
-                gameActive = false;
-                if (animationFrameId) {
-                    cancelAnimationFrame(animationFrameId);
-                    animationFrameId = null;
-                }
-                
-                if (!progressFlags.hasPlayedFirstGame) {
-                    progressFlags.hasPlayedFirstGame = true;
-                    saveProgress();
-                }
-                
-                finalScoreDiv.textContent = `Ваш счёт: ${score}`;
-                bestScoreDiv.textContent = `Лучший результат: ${bestScore}`;
-                
-                if (progressFlags.hasCoinsEnabled) {
-                    coinsThisRunDiv.textContent = `Монет собрано: ${coinsThisRun}`;
-                    coinsThisRunDiv.style.display = 'block';
-                } else {
-                    coinsThisRunDiv.style.display = 'none';
-                }
-                
-                updateShopUI();
-                showMenu(true);
-                return;
-            }
-            
-            animationFrameId = requestAnimationFrame(gameLoop);
-        }
-        
-        function startGameLoop() {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-            }
-            animationFrameId = requestAnimationFrame(gameLoop);
-        }
-        
-        // === МАГАЗИН ===
-        
-        function renderSkinSelection() {
-            const skinGrid = document.getElementById('skinGrid');
-            skinGrid.innerHTML = '';
-            
-            const skinData = {
-                'square': { icon: '⬜', name: 'Квадрат' },
-                'triangle': { icon: '🔺', name: 'Треугольник' }
-            };
-            
-            for (let skin of shopPurchases.ownedSkins) {
-                const item = document.createElement('div');
-                item.className = 'selection-item';
-                if (shopPurchases.currentSkin === skin) {
-                    item.classList.add('selected');
-                }
-                item.setAttribute('data-skin', skin);
-                
-                const icon = document.createElement('div');
-                icon.className = 'selection-icon';
-                icon.textContent = skinData[skin].icon;
-                
-                const name = document.createElement('div');
-                name.className = 'selection-name';
-                name.textContent = skinData[skin].name;
-                
-                item.appendChild(icon);
-                item.appendChild(name);
-                skinGrid.appendChild(item);
-                
-                item.addEventListener('click', () => {
-                    shopPurchases.currentSkin = skin;
-                    saveShop();
-                    renderSkinSelection();
-                });
-            }
-        }
-        
-        function renderAnimationSelection() {
-            const animGrid = document.getElementById('animationGrid');
-            animGrid.innerHTML = '';
-            
-            const animations = [
-                { key: 'none', icon: '⭕', name: 'Нет' }
-            ];
-            
-            if (shopPurchases.animations.rotation) {
-                animations.push({ key: 'rotation', icon: '🔄', name: 'Поворот' });
-            }
-            
-            for (let anim of animations) {
-                const item = document.createElement('div');
-                item.className = 'selection-item';
-                if (shopPurchases.currentAnimation === anim.key) {
-                    item.classList.add('selected');
-                }
-                item.setAttribute('data-animation', anim.key);
-                
-                const icon = document.createElement('div');
-                icon.className = 'selection-icon';
-                icon.textContent = anim.icon;
-                
-                const name = document.createElement('div');
-                name.className = 'selection-name';
-                name.textContent = anim.name;
-                
-                item.appendChild(icon);
-                item.appendChild(name);
-                animGrid.appendChild(item);
-                
-                item.addEventListener('click', () => {
-                    shopPurchases.currentAnimation = anim.key;
-                    saveShop();
-                    renderAnimationSelection();
-                });
-            }
-        }
-        
-        function renderColorModeSelection() {
-            const colorGrid = document.getElementById('colorModeGrid');
-            colorGrid.innerHTML = '';
-            
-            const modes = [
-                { key: 'normal', icon: '⚫', name: 'Обычный' },
-                { key: 'inverted', icon: '⚪', name: 'Инверсия' }
-            ];
-            
-            for (let mode of modes) {
-                const item = document.createElement('div');
-                item.className = 'selection-item';
-                if (shopPurchases.currentColorMode === mode.key) {
-                    item.classList.add('selected');
-                }
-                item.setAttribute('data-colormode', mode.key);
-                
-                const icon = document.createElement('div');
-                icon.className = 'selection-icon';
-                icon.textContent = mode.icon;
-                
-                const name = document.createElement('div');
-                name.className = 'selection-name';
-                name.textContent = mode.name;
-                
-                item.appendChild(icon);
-                item.appendChild(name);
-                colorGrid.appendChild(item);
-                
-                item.addEventListener('click', () => {
-                    shopPurchases.currentColorMode = mode.key;
-                    saveShop();
-                    renderColorModeSelection();
-                });
-            }
-        }
-        
-        function updateShopUI() {
-            // Щит
-            const shieldStatus = document.getElementById('shieldStatus');
-            const buyShieldBtn = document.getElementById('buyShield');
-            
-            if (shopPurchases.hasShield) {
-                shieldStatus.innerHTML = '<span class="owned-indicator">✓ Куплен (активен)</span>';
-                buyShieldBtn.disabled = true;
-                buyShieldBtn.textContent = 'Уже куплен';
-            } else {
-                shieldStatus.textContent = 'Не куплен';
-                buyShieldBtn.disabled = totalCoins < 10;
-                buyShieldBtn.textContent = totalCoins < 10 ? 'Недостаточно монет' : 'Купить';
-            }
-            
-            // Магнит
-            const magnetStatus = document.getElementById('magnetStatus');
-            const buyMagnetBtn = document.getElementById('buyMagnet');
-            const magnetUpgrades = document.getElementById('magnetUpgrades');
-            
-            if (shopPurchases.hasMagnet) {
-                magnetStatus.innerHTML = '<span class="owned-indicator">✓ Куплен</span>';
-                buyMagnetBtn.style.display = 'none';
-                magnetUpgrades.style.display = 'block';
-                
-                const radiusLevel = document.getElementById('radiusLevel');
-                const upgradeRadiusBtn = document.getElementById('upgradeRadius');
-                const radiusLvl = shopPurchases.magnetRadiusLevel;
-                radiusLevel.textContent = `Уровень: ${radiusLvl}/3`;
-                
-                if (radiusLvl >= 3) {
-                    radiusLevel.innerHTML = '<span class="max-level">MAX УРОВЕНЬ</span>';
-                    upgradeRadiusBtn.disabled = true;
-                    upgradeRadiusBtn.textContent = 'МАКС';
-                } else {
-                    const prices = [5, 10, 15];
-                    const price = prices[radiusLvl];
-                    upgradeRadiusBtn.disabled = totalCoins < price;
-                    upgradeRadiusBtn.textContent = totalCoins < price ? `${price} 🪙 (мало)` : `${price} 🪙`;
-                }
-                
-                const speedLevel = document.getElementById('speedLevel');
-                const upgradeSpeedBtn = document.getElementById('upgradeSpeed');
-                const speedLvl = shopPurchases.magnetSpeedLevel;
-                speedLevel.textContent = `Уровень: ${speedLvl}/3`;
-                
-                if (speedLvl >= 3) {
-                    speedLevel.innerHTML = '<span class="max-level">MAX УРОВЕНЬ</span>';
-                    upgradeSpeedBtn.disabled = true;
-                    upgradeSpeedBtn.textContent = 'МАКС';
-                } else {
-                    const prices = [5, 10, 15];
-                    const price = prices[speedLvl];
-                    upgradeSpeedBtn.disabled = totalCoins < price;
-                    upgradeSpeedBtn.textContent = totalCoins < price ? `${price} 🪙 (мало)` : `${price} 🪙`;
-                }
-            } else {
-                magnetStatus.textContent = 'Не куплен';
-                buyMagnetBtn.style.display = 'block';
-                buyMagnetBtn.disabled = totalCoins < 20;
-                buyMagnetBtn.textContent = totalCoins < 20 ? 'Недостаточно монет' : 'Купить';
-                magnetUpgrades.style.display = 'none';
-            }
-            
-            // Анимация
-            const animationStatus = document.getElementById('animationStatus');
-            const buyAnimationBtn = document.getElementById('buyAnimation');
-            const animationSelection = document.getElementById('animationSelection');
-            
-            if (shopPurchases.animations.rotation) {
-                animationStatus.innerHTML = '<span class="owned-indicator">✓ Куплена</span>';
-                buyAnimationBtn.style.display = 'none';
-                animationSelection.style.display = 'block';
-                renderAnimationSelection();
-            } else {
-                animationStatus.textContent = 'Не куплена';
-                buyAnimationBtn.style.display = 'block';
-                buyAnimationBtn.disabled = totalCoins < 15;
-                buyAnimationBtn.textContent = totalCoins < 15 ? 'Недостаточно монет' : 'Купить';
-                animationSelection.style.display = 'none';
-            }
-            
-            // Инверсия цвета
-            const colorInversionStatus = document.getElementById('colorInversionStatus');
-            const buyColorInversionBtn = document.getElementById('buyColorInversion');
-            const colorModeSelection = document.getElementById('colorModeSelection');
-            
-            if (shopPurchases.hasColorInversion) {
-                colorInversionStatus.innerHTML = '<span class="owned-indicator">✓ Куплена</span>';
-                buyColorInversionBtn.style.display = 'none';
-                colorModeSelection.style.display = 'block';
-                renderColorModeSelection();
-            } else {
-                colorInversionStatus.textContent = 'Не куплена';
-                buyColorInversionBtn.style.display = 'block';
-                buyColorInversionBtn.disabled = totalCoins < 5;
-                buyColorInversionBtn.textContent = totalCoins < 5 ? 'Недостаточно монет' : 'Купить';
-                colorModeSelection.style.display = 'none';
-            }
-            
-            // Треугольник
-            const triangleStatus = document.getElementById('triangleSkinStatus');
-            const buyTriangleBtn = document.getElementById('buyTriangleSkin');
-            
-            if (shopPurchases.ownedSkins.includes('triangle')) {
-                triangleStatus.innerHTML = '<span class="owned-indicator">✓ Куплен</span>';
-                buyTriangleBtn.style.display = 'none';
-            } else {
-                triangleStatus.textContent = 'Не куплен';
-                buyTriangleBtn.style.display = 'block';
-                buyTriangleBtn.disabled = totalCoins < 5;
-                buyTriangleBtn.textContent = totalCoins < 5 ? 'Недостаточно монет' : 'Купить';
-            }
-            
-            renderSkinSelection();
-        }
-        
-        function buyShield() {
-            if (totalCoins >= 10 && !shopPurchases.hasShield) {
-                totalCoins -= 10;
-                shopPurchases.hasShield = true;
-                localStorage.setItem('totalCoins', totalCoins);
-                totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
-                saveShop();
-                updateShopUI();
-            }
-        }
-        
-        function buyMagnet() {
-            if (totalCoins >= 20 && !shopPurchases.hasMagnet) {
-                totalCoins -= 20;
-                shopPurchases.hasMagnet = true;
-                localStorage.setItem('totalCoins', totalCoins);
-                totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
-                saveShop();
-                updateShopUI();
-            }
-        }
-        
-        function upgradeRadius() {
-            const prices = [5, 10, 15];
-            const currentLevel = shopPurchases.magnetRadiusLevel;
-            
-            if (currentLevel < 3 && totalCoins >= prices[currentLevel]) {
-                totalCoins -= prices[currentLevel];
-                shopPurchases.magnetRadiusLevel++;
-                localStorage.setItem('totalCoins', totalCoins);
-                totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
-                saveShop();
-                updateShopUI();
-            }
-        }
-        
-        function upgradeSpeed() {
-            const prices = [5, 10, 15];
-            const currentLevel = shopPurchases.magnetSpeedLevel;
-            
-            if (currentLevel < 3 && totalCoins >= prices[currentLevel]) {
-                totalCoins -= prices[currentLevel];
-                shopPurchases.magnetSpeedLevel++;
-                localStorage.setItem('totalCoins', totalCoins);
-                totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
-                saveShop();
-                updateShopUI();
-            }
-        }
-        
-        function buyAnimation() {
-            if (totalCoins >= 15 && !shopPurchases.animations.rotation) {
-                totalCoins -= 15;
-                shopPurchases.animations.rotation = true;
-                shopPurchases.currentAnimation = 'rotation';
-                localStorage.setItem('totalCoins', totalCoins);
-                totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
-                saveShop();
-                updateShopUI();
-            }
-        }
-        
-        function buyColorInversion() {
-            if (totalCoins >= 5 && !shopPurchases.hasColorInversion) {
-                totalCoins -= 5;
-                shopPurchases.hasColorInversion = true;
-                localStorage.setItem('totalCoins', totalCoins);
-                totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
-                saveShop();
-                updateShopUI();
-            }
-        }
-        
-        function buyTriangleSkin() {
-            if (totalCoins >= 5 && !shopPurchases.ownedSkins.includes('triangle')) {
-                totalCoins -= 5;
-                shopPurchases.ownedSkins.push('triangle');
-                localStorage.setItem('totalCoins', totalCoins);
-                totalCoinsDisplay.textContent = `🪙 ${totalCoins}`;
-                saveShop();
-                updateShopUI();
-            }
-        }
-        
-        // === СОБЫТИЯ ===
-        
-        playButton.addEventListener('click', hideMenuAndPlay);
-        
-        shopButton.addEventListener('click', () => {
-            shopDiv.style.display = 'block';
-            mainMenuSection.style.display = 'none';
-            updateShopUI();
-        });
-        
-        backToMenuButton.addEventListener('click', () => {
-            shopDiv.style.display = 'none';
-            mainMenuSection.style.display = 'block';
-        });
-        
-        document.getElementById('buyShield').addEventListener('click', buyShield);
-        document.getElementById('buyMagnet').addEventListener('click', buyMagnet);
-        document.getElementById('upgradeRadius').addEventListener('click', upgradeRadius);
-        document.getElementById('upgradeSpeed').addEventListener('click', upgradeSpeed);
-        document.getElementById('buyAnimation').addEventListener('click', buyAnimation);
-        document.getElementById('buyColorInversion').addEventListener('click', buyColorInversion);
-        document.getElementById('buyTriangleSkin').addEventListener('click', buyTriangleSkin);
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'KeyG') {
-                debugMode = !debugMode;
-                console.log('Debug mode:', debugMode);
-            }
-            
-            if (e.code === 'Space') {
-                e.preventDefault();
-                if (gameState === 'playing' && gameActive) {
-                    jump();
-                } else if (gameState === 'menu' || gameState === 'gameOver') {
-                    if (shopDiv.style.display === 'none') {
-                        hideMenuAndPlay();
+                for (let i = 0; i < hitboxPoints.length; i++) {
+                    const p = hitboxPoints[i];
+                    if (i === 0) {
+                        ctx.moveTo(p.x, p.y);
+                    } else {
+                        ctx.lineTo(p.x, p.y);
                     }
                 }
-            }
-        });
-        
-        canvas.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            if (gameState === 'playing' && gameActive) {
-                jump();
-            } else if (gameState === 'menu' || gameState === 'gameOver') {
-                if (shopDiv.style.display === 'none') {
-                    hideMenuAndPlay();
+                ctx.closePath();
+                ctx.stroke();
+                
+                ctx.fillStyle = colors.debugPoints;
+                for (let p of hitboxPoints) {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                    ctx.fill();
                 }
-            }
-        });
-        
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if (gameState === 'playing' && gameActive) {
-                jump();
-            } else if (gameState === 'menu' || gameState === 'gameOver') {
-                if (shopDiv.style.display === 'none') {
-                    hideMenuAndPlay();
+                
+                const center = Physics.getBirdCenter(GameState.bird);
+                ctx.fillStyle = colors.debugCenter;
+                ctx.beginPath();
+                ctx.arc(center.x, center.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                if (Shop.purchases.hasMagnet) {
+                    ctx.strokeStyle = colors.magnetColor;
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.arc(center.x, center.y, Shop.getMagnetRadius(), 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
                 }
+            },
+            
+            render() {
+                const colors = Shop.getColors();
+                
+                ctx.fillStyle = colors.background;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                this.drawMagnetRadius();
+                this.drawBird();
+                this.drawPipes();
+                this.drawCoins();
+                this.drawDebugHitbox();
             }
-        }, { passive: false });
+        };
         
-        resetButton.addEventListener('click', resetProgress);
+        // ========================================
+        // UI - Интерфейс меню и магазина
+        // ========================================
+        const UI = {
+            showMenu(isGameOver = false) {
+                GameState.state = isGameOver ? 'gameOver' : 'menu';
+                
+                const menuTitle = document.getElementById('menuTitle');
+                const statsSection = document.getElementById('statsSection');
+                const playButton = document.getElementById('playButton');
+                
+                if (isGameOver) {
+                    menuTitle.textContent = 'ИГРА ОКОНЧЕНА';
+                    statsSection.style.display = 'block';
+                    playButton.textContent = '🔄 Играть снова';
+                } else {
+                    menuTitle.textContent = 'Ptuška';
+                    statsSection.style.display = 'none';
+                    playButton.textContent = '🎮 Играть';
+                }
+                
+                document.getElementById('menu').style.display = 'block';
+                document.getElementById('shop').style.display = 'none';
+                document.getElementById('mainMenuSection').style.display = 'block';
+            },
+            
+            hideMenuAndPlay() {
+                document.getElementById('menu').style.display = 'none';
+                GameState.state = 'playing';
+                GameState.restart();
+            },
+            
+            renderSkinSelection() {
+                const skinGrid = document.getElementById('skinGrid');
+                skinGrid.innerHTML = '';
+                
+                const skinData = {
+                    'square': { icon: '⬜', name: 'Квадрат' },
+                    'triangle': { icon: '🔺', name: 'Треугольник' }
+                };
+                
+                for (let skin of Shop.purchases.ownedSkins) {
+                    const item = document.createElement('div');
+                    item.className = 'selection-item';
+                    if (Shop.purchases.currentSkin === skin) {
+                        item.classList.add('selected');
+                    }
+                    item.setAttribute('data-skin', skin);
+                    
+                    const icon = document.createElement('div');
+                    icon.className = 'selection-icon';
+                    icon.textContent = skinData[skin].icon;
+                    
+                    const name = document.createElement('div');
+                    name.className = 'selection-name';
+                    name.textContent = skinData[skin].name;
+                    
+                    item.appendChild(icon);
+                    item.appendChild(name);
+                    skinGrid.appendChild(item);
+                    
+                    item.addEventListener('click', () => {
+                        Shop.purchases.currentSkin = skin;
+                        Shop.save();
+                        this.renderSkinSelection();
+                    });
+                }
+            },
+            
+            renderAnimationSelection() {
+                const animGrid = document.getElementById('animationGrid');
+                animGrid.innerHTML = '';
+                
+                const animations = [
+                    { key: 'none', icon: '⭕', name: 'Нет' }
+                ];
+                
+                if (Shop.purchases.animations.rotation) {
+                    animations.push({ key: 'rotation', icon: '🔄', name: 'Поворот' });
+                }
+                
+                for (let anim of animations) {
+                    const item = document.createElement('div');
+                    item.className = 'selection-item';
+                    if (Shop.purchases.currentAnimation === anim.key) {
+                        item.classList.add('selected');
+                    }
+                    item.setAttribute('data-animation', anim.key);
+                    
+                    const icon = document.createElement('div');
+                    icon.className = 'selection-icon';
+                    icon.textContent = anim.icon;
+                    
+                    const name = document.createElement('div');
+                    name.className = 'selection-name';
+                    name.textContent = anim.name;
+                    
+                    item.appendChild(icon);
+                    item.appendChild(name);
+                    animGrid.appendChild(item);
+                    
+                    item.addEventListener('click', () => {
+                        Shop.purchases.currentAnimation = anim.key;
+                        Shop.save();
+                        this.renderAnimationSelection();
+                    });
+                }
+            },
+            
+            renderColorModeSelection() {
+                const colorGrid = document.getElementById('colorModeGrid');
+                colorGrid.innerHTML = '';
+                
+                const modes = [
+                    { key: 'normal', icon: '⚫', name: 'Обычный' },
+                    { key: 'inverted', icon: '⚪', name: 'Инверсия' }
+                ];
+                
+                for (let mode of modes) {
+                    const item = document.createElement('div');
+                    item.className = 'selection-item';
+                    if (Shop.purchases.currentColorMode === mode.key) {
+                        item.classList.add('selected');
+                    }
+                    item.setAttribute('data-colormode', mode.key);
+                    
+                    const icon = document.createElement('div');
+                    icon.className = 'selection-icon';
+                    icon.textContent = mode.icon;
+                    
+                    const name = document.createElement('div');
+                    name.className = 'selection-name';
+                    name.textContent = mode.name;
+                    
+                    item.appendChild(icon);
+                    item.appendChild(name);
+                    colorGrid.appendChild(item);
+                    
+                    item.addEventListener('click', () => {
+                        Shop.purchases.currentColorMode = mode.key;
+                        Shop.save();
+                        this.renderColorModeSelection();
+                    });
+                }
+            },
+            
+            updateShopUI() {
+                // Щит
+                const shieldStatus = document.getElementById('shieldStatus');
+                const buyShieldBtn = document.getElementById('buyShield');
+                
+                if (Shop.purchases.hasShield) {
+                    shieldStatus.innerHTML = '<span class="owned-indicator">✓ Куплен (активен)</span>';
+                    buyShieldBtn.disabled = true;
+                    buyShieldBtn.textContent = 'Уже куплен';
+                } else {
+                    shieldStatus.textContent = 'Не куплен';
+                    buyShieldBtn.disabled = GameState.totalCoins < 10;
+                    buyShieldBtn.textContent = GameState.totalCoins < 10 ? 'Недостаточно монет' : 'Купить';
+                }
+                
+                // Магнит
+                const magnetStatus = document.getElementById('magnetStatus');
+                const buyMagnetBtn = document.getElementById('buyMagnet');
+                const magnetUpgrades = document.getElementById('magnetUpgrades');
+                
+                if (Shop.purchases.hasMagnet) {
+                    magnetStatus.innerHTML = '<span class="owned-indicator">✓ Куплен</span>';
+                    buyMagnetBtn.style.display = 'none';
+                    magnetUpgrades.style.display = 'block';
+                    
+                    const radiusLevel = document.getElementById('radiusLevel');
+                    const upgradeRadiusBtn = document.getElementById('upgradeRadius');
+                    const radiusLvl = Shop.purchases.magnetRadiusLevel;
+                    radiusLevel.textContent = `Уровень: ${radiusLvl}/3`;
+                    
+                    if (radiusLvl >= 3) {
+                        radiusLevel.innerHTML = '<span class="max-level">MAX УРОВЕНЬ</span>';
+                        upgradeRadiusBtn.disabled = true;
+                        upgradeRadiusBtn.textContent = 'МАКС';
+                    } else {
+                        const prices = [5, 10, 15];
+                        const price = prices[radiusLvl];
+                        upgradeRadiusBtn.disabled = GameState.totalCoins < price;
+                        upgradeRadiusBtn.textContent = GameState.totalCoins < price ? `${price} 🪙 (мало)` : `${price} 🪙`;
+                    }
+                    
+                    const speedLevel = document.getElementById('speedLevel');
+                    const upgradeSpeedBtn = document.getElementById('upgradeSpeed');
+                    const speedLvl = Shop.purchases.magnetSpeedLevel;
+                    speedLevel.textContent = `Уровень: ${speedLvl}/3`;
+                    
+                    if (speedLvl >= 3) {
+                        speedLevel.innerHTML = '<span class="max-level">MAX УРОВЕНЬ</span>';
+                        upgradeSpeedBtn.disabled = true;
+                        upgradeSpeedBtn.textContent = 'МАКС';
+                    } else {
+                        const prices = [5, 10, 15];
+                        const price = prices[speedLvl];
+                        upgradeSpeedBtn.disabled = GameState.totalCoins < price;
+                        upgradeSpeedBtn.textContent = GameState.totalCoins < price ? `${price} 🪙 (мало)` : `${price} 🪙`;
+                    }
+                } else {
+                    magnetStatus.textContent = 'Не куплен';
+                    buyMagnetBtn.style.display = 'block';
+                    buyMagnetBtn.disabled = GameState.totalCoins < 20;
+                    buyMagnetBtn.textContent = GameState.totalCoins < 20 ? 'Недостаточно монет' : 'Купить';
+                    magnetUpgrades.style.display = 'none';
+                }
+                
+                // Анимация
+                const animationStatus = document.getElementById('animationStatus');
+                const buyAnimationBtn = document.getElementById('buyAnimation');
+                const animationSelection = document.getElementById('animationSelection');
+                
+                if (Shop.purchases.animations.rotation) {
+                    animationStatus.innerHTML = '<span class="owned-indicator">✓ Куплена</span>';
+                    buyAnimationBtn.style.display = 'none';
+                    animationSelection.style.display = 'block';
+                    this.renderAnimationSelection();
+                } else {
+                    animationStatus.textContent = 'Не куплена';
+                    buyAnimationBtn.style.display = 'block';
+                    buyAnimationBtn.disabled = GameState.totalCoins < 15;
+                    buyAnimationBtn.textContent = GameState.totalCoins < 15 ? 'Недостаточно монет' : 'Купить';
+                    animationSelection.style.display = 'none';
+                }
+                
+                // Инверсия цвета
+                const colorInversionStatus = document.getElementById('colorInversionStatus');
+                const buyColorInversionBtn = document.getElementById('buyColorInversion');
+                const colorModeSelection = document.getElementById('colorModeSelection');
+                
+                if (Shop.purchases.hasColorInversion) {
+                    colorInversionStatus.innerHTML = '<span class="owned-indicator">✓ Куплена</span>';
+                    buyColorInversionBtn.style.display = 'none';
+                    colorModeSelection.style.display = 'block';
+                    this.renderColorModeSelection();
+                } else {
+                    colorInversionStatus.textContent = 'Не куплена';
+                    buyColorInversionBtn.style.display = 'block';
+                    buyColorInversionBtn.disabled = GameState.totalCoins < 5;
+                    buyColorInversionBtn.textContent = GameState.totalCoins < 5 ? 'Недостаточно монет' : 'Купить';
+                    colorModeSelection.style.display = 'none';
+                }
+                
+                // Треугольник
+                const triangleStatus = document.getElementById('triangleSkinStatus');
+                const buyTriangleBtn = document.getElementById('buyTriangleSkin');
+                
+                if (Shop.purchases.ownedSkins.includes('triangle')) {
+                    triangleStatus.innerHTML = '<span class="owned-indicator">✓ Куплен</span>';
+                    buyTriangleBtn.style.display = 'none';
+                } else {
+                    triangleStatus.textContent = 'Не куплен';
+                    buyTriangleBtn.style.display = 'block';
+                    buyTriangleBtn.disabled = GameState.totalCoins < 5;
+                    buyTriangleBtn.textContent = GameState.totalCoins < 5 ? 'Недостаточно монет' : 'Купить';
+                }
+                
+                this.renderSkinSelection();
+            }
+        };
         
-        init();
+        // ========================================
+        // INPUTHANDLER - Обработка ввода
+        // ========================================
+        const InputHandler = {
+            handleKeyDown(e) {
+                if (e.code === 'KeyG') {
+                    debugMode = !debugMode;
+                    console.log('Debug mode:', debugMode);
+                }
+                
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    if (GameState.state === 'playing' && GameState.active) {
+                        GameState.jump();
+                    } else if (GameState.state === 'menu' || GameState.state === 'gameOver') {
+                        if (document.getElementById('shop').style.display === 'none') {
+                            UI.hideMenuAndPlay();
+                        }
+                    }
+                }
+            },
+            
+            handleMouseDown(e) {
+                e.preventDefault();
+                if (GameState.state === 'playing' && GameState.active) {
+                    GameState.jump();
+                } else if (GameState.state === 'menu' || GameState.state === 'gameOver') {
+                    if (document.getElementById('shop').style.display === 'none') {
+                        UI.hideMenuAndPlay();
+                    }
+                }
+            },
+            
+            handleTouchStart(e) {
+                e.preventDefault();
+                if (GameState.state === 'playing' && GameState.active) {
+                    GameState.jump();
+                } else if (GameState.state === 'menu' || GameState.state === 'gameOver') {
+                    if (document.getElementById('shop').style.display === 'none') {
+                        UI.hideMenuAndPlay();
+                    }
+                }
+            },
+            
+            init() {
+                document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+                canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+                canvas.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
+                
+                // UI кнопки
+                document.getElementById('playButton').addEventListener('click', () => UI.hideMenuAndPlay());
+                
+                document.getElementById('shopButton').addEventListener('click', () => {
+                    document.getElementById('shop').style.display = 'block';
+                    document.getElementById('mainMenuSection').style.display = 'none';
+                    UI.updateShopUI();
+                });
+                
+                document.getElementById('backToMenu').addEventListener('click', () => {
+                    document.getElementById('shop').style.display = 'none';
+                    document.getElementById('mainMenuSection').style.display = 'block';
+                });
+                
+                // Покупки
+                document.getElementById('buyShield').addEventListener('click', () => {
+                    if (Shop.buyShield()) UI.updateShopUI();
+                });
+                
+                document.getElementById('buyMagnet').addEventListener('click', () => {
+                    if (Shop.buyMagnet()) UI.updateShopUI();
+                });
+                
+                document.getElementById('upgradeRadius').addEventListener('click', () => {
+                    if (Shop.upgradeRadius()) UI.updateShopUI();
+                });
+                
+                document.getElementById('upgradeSpeed').addEventListener('click', () => {
+                    if (Shop.upgradeSpeed()) UI.updateShopUI();
+                });
+                
+                document.getElementById('buyAnimation').addEventListener('click', () => {
+                    if (Shop.buyAnimation()) UI.updateShopUI();
+                });
+                
+                document.getElementById('buyColorInversion').addEventListener('click', () => {
+                    if (Shop.buyColorInversion()) UI.updateShopUI();
+                });
+                
+                document.getElementById('buyTriangleSkin').addEventListener('click', () => {
+                    if (Shop.buyTriangleSkin()) UI.updateShopUI();
+                });
+                
+                document.getElementById('resetButton').addEventListener('click', () => {
+                    GameState.reset();
+                });
+            }
+        };
         
-        if (gameState === 'playing') {
-            startGameLoop();
+        // ========================================
+        // ИНИЦИАЛИЗАЦИЯ ИГРЫ
+        // ========================================
+        Storage.init = () => {}; // Storage не требует инициализации
+        Shop.init();
+        GameState.init();
+        InputHandler.init();
+        
+        if (GameState.state === 'playing') {
+            GameState.startGameLoop();
         }
     </script>
 </body>
