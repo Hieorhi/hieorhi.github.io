@@ -1,1 +1,1 @@
-# Дорогие друзья, это мой сайт, он пока в разработке
+### :hammer_and_wrench: Pakul u pracy :hammer_and_wrench:
