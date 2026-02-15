@@ -8,6 +8,14 @@
   font-style: normal;
 }
 
+:root{
+  --base-color: white
+  --text-color: black
+}
+
+.dark {
+  --base-color: black
+  --text-color: white
 }
 
 html, body {
@@ -144,3 +152,4 @@ footer {
     transition-duration: 0.01ms !important;
   }
 }
+
