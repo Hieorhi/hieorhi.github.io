@@ -8,156 +8,158 @@
 
 /* Добавляем пиксельный шрифт */
 * {
-  font-family: "Tiny5", sans-serif;
-  font-weight: 400;
-  font-style: normal;
+	font-family: "Tiny5", sans-serif;
+	font-weight: 400;
+	font-style: normal;
 }
 
 :root{
-  --base-color: white;
-  --text-color: black;
+	--base-color: white;
+	--text-color: black;
 }
 
 .darkmode {
-  --base-color: black;
-  --text-color: white;
+	--base-color: black;
+	--text-color: white;
 }
 
 html, body {
-  height: 100%;
-  background: var(--base-color);
-  color: var(--text-color);
+	height: 100%;
+	background: var(--base-color);
+	color: var(--text-color);
 }
 
 body {
-  display: grid;
-  grid-template-rows: auto 1fr auto;
+	display: grid;
+	grid-template-rows: auto 1fr auto;
 }
 
 /* Кламп адаптивный сверху и снизу, по бокам фиксированый, надо с линией горизонтальной чекнуть */
 header {
-  display: grid;
-  grid-template-columns: 20% 20% 20% 20% 20%;
-  padding: clamp(24px, 5vw, 48px) 16px;
-  text-align: center;
+	display: grid;
+	grid-template-columns: 20% 20% 20% 20% 20%;
+	padding: clamp(24px, 5vw, 48px) 16px;
+	text-align: center;
 }
 
 /* Кламп адаптивный для шрифта, надо с величинами разобраться, сверху тоже */
 header h1 {
-  grid-column-start: 2;
-  grid-column-end: 5;
-  font-size: clamp(2rem, 5vw, 3rem);
-  font-weight: 600;
+	grid-column-start: 2;
+	grid-column-end: 5;
+	font-size: clamp(2rem, 5vw, 3rem);
+	font-weight: 600;
+	text-decoration: none;
+	color: inherit;
 }
 
 #theme-switch {
-  margin-right: 10px;
+	margin-right: 10px;
 }
 
 #theme-switch img:last-child{
-  display: none;
+	display: none;
 }
 
 .darkmode #theme-switch img:first-child{
-  display: none;
+	display: none;
 }
 
 .darkmode #theme-switch img:last-child{
-  display: block;
+	display: block;
 }
 
 footer {
-  padding: 32px 16px;
-  text-align: center;
-  color: gray;
-  font-size: clamp(0.85rem, 2vw, 0.9rem);
-  border-top: 5px solid var(--text-color);
+	padding: 32px 16px;
+	text-align: center;
+	color: gray;
+	font-size: clamp(0.85rem, 2vw, 0.9rem);
+	border-top: 5px solid var(--text-color);
 }
 
 main {
-  flex: 1; 
-  display: flex;
-  justify-content: center;
-  padding: clamp(16px, 4vw, 32px);
+	flex: 1; 
+	display: flex;
+	justify-content: center;
+	padding: clamp(16px, 4vw, 32px);
 }
 
 .projects-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 300px));
-  gap: clamp(20px, 4vw, 32px);
-  justify-content: center;
-  max-width: 1200px;
-  width: 100%;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 300px));
+	gap: clamp(20px, 4vw, 32px);
+	justify-content: center;
+	max-width: 1200px;
+	width: 100%;
 }
 
 .project {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  border: 5px solid var(--text-color);
-  display: flex;
-  flex-direction: column;
-  text-decoration: none;
-  color: inherit;
-  background: var(--base-color);
-  transition: all 0.3s ease;
-  animation: fadeIn 0.6s ease forwards;
+	width: 100%;
+	aspect-ratio: 1 / 1;
+	border: 5px solid var(--text-color);
+	display: flex;
+	flex-direction: column;
+	text-decoration: none;
+	color: inherit;
+	background: var(--base-color);
+	transition: all 0.3s ease;
+	animation: fadeIn 0.6s ease forwards;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+	from { opacity: 0; }
+	to { opacity: 1; }
 }
 
 .project:hover,
 .project:focus-visible {
-  background: #fafafa;
-  transform: translateY(-4px) scale(1.05);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+	background: #fafafa;
+	transform: translateY(-4px) scale(1.05);
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .project-image {
-  flex: 1;
-  overflow: hidden;
-  background: var(--base-color);
+	flex: 1;
+	overflow: hidden;
+	background: var(--base-color);
 }
 
 .project-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
 }
 
 .project-title {
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-top: 5px solid #000;
-  font-size: clamp(0.95rem, 2vw, 1.05rem);
-  font-weight: 500;
-  padding: 0 8px;
+	height: 56px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-top: 5px solid #000;
+	font-size: clamp(0.95rem, 2vw, 1.05rem);
+	font-weight: 500;
+	padding: 0 8px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .project {
-    animation: none;
-  }
-  
-  .project:hover,
-  .project:focus-visible {
-    transform: none;
-    transition: none;
-    background: #f0f0f0;
-    box-shadow: none;
-    outline: 3px solid #000;
-    outline-offset: 2px;
-  }
-  
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+	.project {
+		animation: none;
+	}
+
+	.project:hover,
+	.project:focus-visible {
+		transform: none;
+		transition: none;
+		background: #f0f0f0;
+		box-shadow: none;
+		outline: 3px solid #000;
+		outline-offset: 2px;
+	}
+
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
 }
