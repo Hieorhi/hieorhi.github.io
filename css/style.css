@@ -14,62 +14,64 @@
 }
 
 :root{
-  --base-color: white
-  --text-color: black
+  --base-color: white;
+  --text-color: black;
 }
 
-.dark {
-  --base-color: black
-  --text-color: white
+.darkmode {
+  --base-color: black;
+  --text-color: white;
 }
 
 html, body {
-  min-height: 100%;
-  font-family: "Helvetica Neue", Arial, sans-serif;
-  background: #ffffff;
-  color: #111;
+  height: 100%;
+  background: var(--base-color);
+  color: var(--text-color);
 }
 
 body {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-  
-.skip-to-main {
-  position: absolute;
-  top: -40px;
-  left: 0;
-  background: #000;
-  color: #fff;
-  padding: 8px 16px;
-  text-decoration: none;
-  z-index: 100;
-}
-
-.skip-to-main:focus {
-  top: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
 }
 
 /* Кламп адаптивный сверху и снизу, по бокам фиксированый, надо с линией горизонтальной чекнуть */
 header {
+  display: grid;
+  grid-template-columns: 20% 20% 20% 20% 20%;
   padding: clamp(24px, 5vw, 48px) 16px;
   text-align: center;
 }
 
 /* Кламп адаптивный для шрифта, надо с величинами разобраться, сверху тоже */
 header h1 {
+  grid-column-start: 2;
+  grid-column-end: 5;
   font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 600;
 }
 
+#theme-switch {
+  margin-right: 10px;
+}
+
+#theme-switch img:last-child{
+  display: none;
+}
+
+.darkmode #theme-switch img:first-child{
+  display: none;
+}
+
+.darkmode #theme-switch img:last-child{
+  display: block;
+}
+
 footer {
-  margin-top: auto; 
   padding: 32px 16px;
   text-align: center;
   color: gray;
   font-size: clamp(0.85rem, 2vw, 0.9rem);
-  border-top: 5px solid black;
+  border-top: 5px solid var(--text-color);
 }
 
 main {
@@ -91,12 +93,12 @@ main {
 .project {
   width: 100%;
   aspect-ratio: 1 / 1;
-  border: 5px solid #000;
+  border: 5px solid var(--text-color);
   display: flex;
   flex-direction: column;
   text-decoration: none;
   color: inherit;
-  background: #fff;
+  background: var(--base-color);
   transition: all 0.3s ease;
   animation: fadeIn 0.6s ease forwards;
 }
@@ -116,7 +118,7 @@ main {
 .project-image {
   flex: 1;
   overflow: hidden;
-  background: #f5f5f5;
+  background: var(--base-color);
 }
 
 .project-image img {
