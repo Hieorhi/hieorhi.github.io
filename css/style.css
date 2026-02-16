@@ -48,12 +48,17 @@ header h1 {
 	grid-column-end: 5;
 	font-size: clamp(2rem, 5vw, 3rem);
 	font-weight: 600;
+}
+
+h1 a {
 	text-decoration: none;
 	color: inherit;
 }
 
 #theme-switch {
 	margin-right: 10px;
+	width: clamp(100px, 20%, 200px);
+	height: auto;
 }
 
 #theme-switch img:last-child{
@@ -163,3 +168,4 @@ main {
 		transition-duration: 0.01ms !important;
 	}
 }
+
