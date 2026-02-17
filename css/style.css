@@ -32,6 +32,7 @@ html, body {
 header {
 	display: flex;
 	justify-content: space-between;
+	align-items: center;
 	padding: clamp(1rem, 5vw, 4rem);
 	border-bottom: 5px solid var(--text-color);
 	font-size: clamp(2rem, 5vmin, 3rem);
@@ -41,7 +42,6 @@ header {
 header img {
 	height: 1em;
 	width: auto;
-	vertical-align: middle;
 }
 
 a {
@@ -159,4 +159,3 @@ main {
 		transition-duration: 0.01ms !important;
 	}
 }
-
