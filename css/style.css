@@ -29,19 +29,44 @@ html, body {
 	color: var(--text-color);
 }
 
+body {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    min-height: 100vh; /* вместо height: 100% */
+    margin: 0;
+}
+
 header {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	padding: clamp(1rem, 5vw, 4rem);
-	border-bottom: 5px solid var(--text-color);
+	border: 5px solid var(--text-color);
 	font-size: clamp(2rem, 5vmin, 3rem);
 	font-weight: 600;
 }
 
 header img {
-	height: 1em;
+	height: 1.5em;
 	width: auto;
+	vertical-align: -0.4em;
+}
+
+header button {
+	font-size: inherit;
+	padding: 0;
+	margin: 0;
+	border: none;
+	background: none;
+	cursor: pointer;
+	line-height: 1;
+	min-width: 0;              /* отключаем возможные минимальные ширины */
+	min-height: 0;             /* отключаем возможные минимальные высоты */
+	width: fit-content;        /* ширина по содержимому (на всякий случай) */
+	height: fit-content;       /* высота по содержимому */
+	display: inline-flex;      /* для точного контроля выравнивания */
+	align-items: center;       /* центрируем текст по вертикали */
+	justify-content: center;   /* центрируем по горизонтали */
 }
 
 a {
@@ -69,7 +94,7 @@ footer {
 	text-align: center;
 	color: gray;
 	font-size: clamp(0.85rem, 2vw, 0.9rem);
-	border-top: 5px solid var(--text-color);
+	border: 5px solid var(--text-color);
 }
 
 main {
