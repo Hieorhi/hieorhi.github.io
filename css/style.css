@@ -39,7 +39,9 @@ header {
 }
 
 header img {
-
+	height: 1em;
+	width: auto;
+	vertical-align: middle;
 }
 
 a {
