@@ -29,32 +29,17 @@ html, body {
 	color: var(--text-color);
 }
 
-body {
-	display: grid;
-	grid-template-rows: auto 1fr auto;
-}
-
-/* Кламп адаптивный сверху и снизу, по бокам фиксированый, надо с линией горизонтальной чекнуть */
 header {
-	display: grid;
-	grid-template-columns: 20% 20% 20% 20% 20%;
-	padding: clamp(20px, 5vw, 33px) clamp(0px, 33%, 555px);
-	text-align: center;
+	display: flex;
+	justify-content: space-between;
+	padding: clamp(1rem, 5vw, 4rem);
 	border-bottom: 5px solid var(--text-color);
-}
-
-/* Кламп адаптивный для шрифта, надо с величинами разобраться, сверху тоже */
-header h1 {
-	grid-column-start: 3;
-	grid-column-end: 5;
-	font-size: clamp(2rem, 5vw, 3rem);
+	font-size: clamp(2rem, 5vmix, 3rem);
 	font-weight: 600;
 }
 
-header>img {
-	grid-column-start: 2;
-	grid-column-end: 3;
-	width: clamp(124px, 33%, 512px)
+header img {
+
 }
 
 a {
@@ -63,10 +48,6 @@ a {
 }
 
 #theme-switch {
-	width: clamp(100px, 20%, 200px);
-	height: auto;
-	grid-column-start: 1;
-	grid-column-end: 2;
 }
 
 #theme-switch img:last-child{
