@@ -34,7 +34,7 @@ header {
 	justify-content: space-between;
 	padding: clamp(1rem, 5vw, 4rem);
 	border-bottom: 5px solid var(--text-color);
-	font-size: clamp(2rem, 5vmix, 3rem);
+	font-size: clamp(2rem, 5vmin, 3rem);
 	font-weight: 600;
 }
 
@@ -159,3 +159,4 @@ main {
 		transition-duration: 0.01ms !important;
 	}
 }
+
