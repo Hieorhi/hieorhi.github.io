@@ -38,17 +38,23 @@ body {
 header {
 	display: grid;
 	grid-template-columns: 20% 20% 20% 20% 20%;
-	padding: clamp(24px, 5vw, 48px) 16px;
+	padding: clamp(20px, 5vw, 33px) clamp(0px, 33%, 555px);
 	text-align: center;
 	border-bottom: 5px solid var(--text-color);
 }
 
 /* Кламп адаптивный для шрифта, надо с величинами разобраться, сверху тоже */
 header h1 {
-	grid-column-start: 2;
+	grid-column-start: 3;
 	grid-column-end: 5;
 	font-size: clamp(2rem, 5vw, 3rem);
 	font-weight: 600;
+}
+
+header>img {
+	grid-column-start: 2;
+	grid-column-end: 3;
+	width: clamp(124px, 33%, 512px)
 }
 
 a {
@@ -59,6 +65,8 @@ a {
 #theme-switch {
 	width: clamp(100px, 20%, 200px);
 	height: auto;
+	grid-column-start: 1;
+	grid-column-end: 2;
 }
 
 #theme-switch img:last-child{
