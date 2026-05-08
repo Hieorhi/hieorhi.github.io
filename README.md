@@ -1,1 +1,1 @@
-### :hammer_and_wrench: Pakul u pracy :hammer_and_wrench:
+### :hammer_and_wrench: Poki ŭ pracy :hammer_and_wrench:
