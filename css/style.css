@@ -18,6 +18,13 @@ body {
 	background: #ffffff;
 }
 
+.site-header,
+.site-footer {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
         /* Основное тело — растягивается, занимает всё доступное место */
 .site-main {
 	flex: 1;
